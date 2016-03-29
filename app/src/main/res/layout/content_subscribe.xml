@@ -13,8 +13,20 @@
     tools:showIn="@layout/activity_subscribe"
     tools:context="in.dc297.mqttclpro.SubscribeActivity">
 
-    <TextView
-        android:text="Hello World!"
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/subscribeTopicEditText"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignEnd="@+id/subsctibeTopicListView"
+        android:singleLine="true" />
+
+    <ListView
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:id="@+id/subsctibeTopicListView"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_above="@+id/subscribeTopicEditText" />
 </RelativeLayout>
