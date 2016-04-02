@@ -8,6 +8,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import org.eclipse.paho.client.mqttv3.MqttTopic;
+
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 /**
@@ -22,7 +25,7 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS topics(_id INTEGER PRIMARY KEY AUTOINCREMENT,topic TEXT,show_noti INTEGER DEFAULT 0,topic_type INTEGER DEFAULT 0)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS topics(_id INTEGER PRIMARY KEY AUTOINCREMENT,topic TEXT,show_noti INTEGER DEFAULT 0,topic_type INTEGER DEFAULT 0,qos INTEGER DEFAULT 0)");
         db.execSQL("CREATE TABLE IF NOT EXISTS messages(_id INTEGER PRIMARY KEY AUTOINCREMENT,topic_id INTEGER,message VARCHAR,timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,read INTEGER DEFAULT 0,topic TEXT)");
 
     }
@@ -40,24 +43,33 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         topic = DatabaseUtils.sqlEscapeString(topic);
         try{
-            if(db.rawQuery("SELECT * FROM topics where topic="+ topic +" and topic_type="+topic_type,null).getCount()==0){
-                db.execSQL("INSERT INTO topics (topic,topic_type) VALUES ("+topic+","+topic_type+")");
-                return 0;
+            MqttTopic.validate(topic,true);
+        }
+        catch(IllegalArgumentException ile){
+            ile.printStackTrace();
+            return 3;
+        }
+        catch(IllegalStateException ise){
+            ise.printStackTrace();
+            return 3;
+        }
+            try {
+                if (db.rawQuery("SELECT * FROM topics where topic=" + topic + " and topic_type=" + topic_type, null).getCount() == 0) {
+                    db.execSQL("INSERT INTO topics (topic,topic_type) VALUES (" + topic + "," + topic_type + ")");
+                    return 0;
+                } else return 1;
+            } catch (SQLException se) {
+
+                se.printStackTrace();
+                return 2;
+
             }
-            else return 1;
-        }
-        catch(SQLException se){
-
-            se.printStackTrace();
-            return 2;
-
-        }
     }
 
     public Cursor getTopics(int topic_type){
         ArrayList<TopicsListViewModel> topics = new ArrayList<TopicsListViewModel>();
         SQLiteDatabase db = getReadableDatabase();
-        Cursor topicCursor = db.rawQuery("SELECT topics._id as _id, topics.topic as topic,(SELECT COUNT(message) FROM messages WHERE messages.topic_id = topics._id AND messages.read=0) AS count,messages.message as message,datetime(messages.timestamp, 'localtime') as timest FROM topics LEFT JOIN messages ON messages.topic_id = topics._id AND messages.message_id=(SELECT messages.message_id FROM messages WHERE messages.topic_id = topics._id and topics.topic_type="+topic_type+" ORDER BY timestamp DESC LIMIT 1) ORDER BY messages.timestamp DESC", null);
+        Cursor topicCursor = db.rawQuery("SELECT topics._id as _id,topics.qos as qos, topics.topic as topic,(SELECT COUNT(message) FROM messages WHERE messages.topic_id = topics._id AND messages.read=0) AS count,messages.message as message,datetime(messages.timestamp, 'localtime') as timest FROM topics LEFT JOIN messages ON messages.topic_id = topics._id AND messages._id=(SELECT messages._id FROM messages WHERE messages.topic_id = topics._id and topics.topic_type="+topic_type+" ORDER BY timestamp DESC LIMIT 1) ORDER BY messages.timestamp DESC", null);
 
         return topicCursor;//.moveToFirst();
         /*while(!topicCursor.isAfterLast()){
@@ -74,5 +86,19 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         Log.i("mytopic",String.valueOf(topics.size()));*/
         //return topics;
+    }
+
+    public boolean addMessage(String topic,String message){
+        SQLiteDatabase db = getWritableDatabase();
+        topic = DatabaseUtils.sqlEscapeString(topic);
+        message = DatabaseUtils.sqlEscapeString(message);
+        try{
+            db.execSQL("INSERT into messages (topic_id,message,topic) VALUES ((SELECT _id from topics where topic="+topic+"),"+message+","+topic+")");
+        }
+        catch(SQLException se){
+            Log.e("db","Failed to add message",se);
+            return false;
+        }
+        return true;
     }
 }

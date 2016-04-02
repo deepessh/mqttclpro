@@ -1,6 +1,9 @@
 package in.dc297.mqttclpro;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -10,10 +13,12 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -28,6 +33,10 @@ public class SubscribeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_subscribe);
 
+        //start service
+        Intent svc = new Intent(this, MQTTService.class);
+        startService(svc);
+        Log.i("subs","starting service");
         db = new DBHelper(getApplicationContext());
         topicsLv = (ListView) findViewById(R.id.subsctibeTopicListView);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -64,12 +73,16 @@ public class SubscribeActivity extends AppCompatActivity {
                                 break;
                             case 1:
                                 Snackbar.make(v, "Topic already added.", Snackbar.LENGTH_LONG)
-                                        .setAction("Action", null).show();
-                                break;
+                                        .setAction("Error", null).show();
+                                return true;
+                            case 3:
+                                Snackbar.make(v,"Invalid MQTT Topic",Snackbar.LENGTH_SHORT)
+                                        .setAction("Error",null).show();
+                                return true;
                             default:
                                 Snackbar.make(v, "Unknown error Occurred.", Snackbar.LENGTH_LONG)
                                         .setAction("Action", null).show();
-                                break;
+                                return true;
                         }
                     }
                     return false;
@@ -78,6 +91,34 @@ public class SubscribeActivity extends AppCompatActivity {
             //tlvmal = db.getTopics(0);
 
             //topicsLv.setAdapter();
+            topicsLv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    TextView topicTV = (TextView) view.findViewById(R.id.topic_tv);
+                    TextView timestampTV = (TextView) view.findViewById(R.id.timestamp_tv);
+                    if(topicTV!=null) {
+                        String topic = (String) topicTV.getText();
+                        String timestamp = (String) timestampTV.getText();
+                        if(timestamp==null || timestamp.equals("")){
+                            Toast.makeText(getApplicationContext(),"No messages received.",Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        if(topic!=null & !topic.equals("")){
+                            Intent messageActivityIntent = new Intent(getApplicationContext(),MessageActivity.class);
+                            messageActivityIntent.putExtra("in.dc297.mqttclpro.topic",topic);
+                            startActivity(messageActivityIntent);
+                            return;
+                        }
+                    }
+                    Toast.makeText(getApplicationContext(),"Unknown command",Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        TextView statusTv = (TextView) findViewById(R.id.statusTV);
+        if (statusTv != null) {
+            statusTv.setText(settings.getString("servicestatus","Waiting for connection"));
         }
     }
 
@@ -97,6 +138,8 @@ public class SubscribeActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent settingsIntent = new Intent(this,SettingsActivity.class);
+            startActivity(settingsIntent);
             return true;
         }
 
