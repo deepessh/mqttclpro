@@ -2,6 +2,7 @@ package in.dc297.mqttclpro;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,7 +15,7 @@ import android.widget.TextView;
 /**
  * Created by deepesh on 29/3/16.
  */
-public class SubscribedTopicsListAdapter extends SimpleCursorAdapter {
+public class MessagesListAdapter extends SimpleCursorAdapter {
 
 
     private Context mContext;
@@ -27,7 +28,7 @@ public class SubscribedTopicsListAdapter extends SimpleCursorAdapter {
     private ViewBinder mViewBinder;
     private DateTimeHelper dth = new DateTimeHelper();
 
-    public SubscribedTopicsListAdapter(Context context, int layout, Cursor c, String[] from, int[] to, int flags) {
+    public MessagesListAdapter(Context context, int layout, Cursor c, String[] from, int[] to, int flags) {
         super(context, layout, c, from, to, flags);
         this.layout=layout;
         this.mContext = context;
@@ -44,27 +45,9 @@ public class SubscribedTopicsListAdapter extends SimpleCursorAdapter {
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        //super.bindView(view, context, cursor);
-
-        int count = this.from.length;
-        for (int i = 0; i < count; i++) {
-            final TextView v = (TextView) view.findViewById(to[i]);
-            if (v != null) {
-                if(v.getId()==R.id.message_count){
-                    if(!cursor.getString(cursor.getColumnIndexOrThrow("count")).equals("0")){
-                        v.setVisibility(View.VISIBLE);
-                    }
-                }
-                v.setText(cursor.getString(cursor.getColumnIndexOrThrow(from[i])));
-                if(v.getId()==R.id.message_tv){
-                    if(cursor.getString(cursor.getColumnIndexOrThrow("message"))==null){
-                        v.setText("No message received.");
-                    }
-                }
-                if(v.getId()==R.id.timestamp_tv){
-                    v.setText(dth.formatTime(cursor.getString(cursor.getColumnIndexOrThrow("timest"))));
-                }
-            }
+        super.bindView(view, context, cursor);
+        if(cursor.getInt(cursor.getColumnIndexOrThrow("status")) == 0){
+            view.setBackgroundColor(Color.BLACK);
         }
     }
 }

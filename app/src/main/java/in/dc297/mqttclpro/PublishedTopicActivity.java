@@ -1,6 +1,7 @@
 package in.dc297.mqttclpro;
 
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -8,23 +9,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ListView;
-import android.widget.Toast;
 
-public class MessageActivity extends AppCompatActivity {
+public class PublishedTopicActivity extends AppCompatActivity {
 
-    private String topic = null;
-    private ListView messagesLV = null;
-    private MessagesListAdapter messagesListAdapter = null;
-    DBHelper db = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_message);
+        setContentView(R.layout.activity_published_topic);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        db = new DBHelper(getApplicationContext());
-
+        DBHelper db = new DBHelper(getApplicationContext());
         /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -34,20 +28,20 @@ public class MessageActivity extends AppCompatActivity {
             }
         });*/
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        Intent topicIntent = getIntent();
-        topic = topicIntent.getStringExtra("in.dc297.mqttclpro.topic");
-        if(topic==null || topic.equals("")){
-            Toast.makeText(this,"No messages received",Toast.LENGTH_SHORT).show();
-            finish();
+        String topic = null;
+        Intent pubTopInt = getIntent();
+        if(pubTopInt!=null){
+            topic = pubTopInt.getStringExtra("topic");
         }
-        setTitle("Received messages for "+topic);
-        messagesLV = (ListView) findViewById(R.id.messages_lv);
-        db.setMessagesRead(topic,0);
+
+        if(topic==null || topic.equals("")) finish();
+
+        setTitle("'"+topic+"' Published Messages");
+        ListView pubTopsLV = (ListView)findViewById(R.id.pub_tops_lv);
         String[] from = new String[] { "message", "timestamp"};
         int[] to = new int[]{R.id.mmessage_tv,R.id.mtimestamp_tv};
-        messagesListAdapter = new MessagesListAdapter(this,R.layout.messages_list_item,db.getMessages(topic,0),from,to,0);
-        messagesLV.setAdapter(messagesListAdapter);
+        MessagesListAdapter pubmlvs = new MessagesListAdapter(getApplicationContext(),R.layout.messages_list_item,db.getMessages(topic,1),from,to,0);
+        pubTopsLV.setAdapter(pubmlvs);
     }
 
 }

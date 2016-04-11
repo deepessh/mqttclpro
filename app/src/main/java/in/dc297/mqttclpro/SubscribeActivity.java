@@ -1,8 +1,11 @@
 package in.dc297.mqttclpro;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -16,7 +19,6 @@ import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,7 +29,7 @@ public class SubscribeActivity extends AppCompatActivity {
     private DBHelper db = null;
     private ArrayList<TopicsListViewModel> tlvmal = null;
     ListView topicsLv = null;
-    SubscribedTopicsListAdapter topicsLVAdapter = null;
+    TopicsListAdapter topicsLVAdapter = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,14 +48,14 @@ public class SubscribeActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent pubActivityIntent = new Intent(getApplicationContext(),PublishActivity.class);
+                startActivity(pubActivityIntent);
             }
         });
 
         String[] from = new String[] { "topic", "count","message","timest"};
         int[] to = new int[]{R.id.topic_tv, R.id.message_count,R.id.message_tv,R.id.timestamp_tv };
-        topicsLVAdapter = new SubscribedTopicsListAdapter(this,R.layout.subscribed_topics_list_item,db.getTopics(0),from,to,0);
+        topicsLVAdapter = new TopicsListAdapter(this,R.layout.subscribed_topics_list_item,db.getTopics(0),from,to,0);
         topicsLv.setAdapter(topicsLVAdapter);
 
         final EditText topicEdit = (EditText) findViewById(R.id.subscribeTopicEditText);
@@ -61,15 +63,28 @@ public class SubscribeActivity extends AppCompatActivity {
             topicEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                 @Override
                 public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                    String topic = topicEdit.getText().toString();
+                    final String topic = topicEdit.getText().toString();
                     if (topic != null && !topic.equals("")) {
                         int atret = db.addTopic(topic, 0);
                         switch (atret) {
                             case 0:
-                                //Snackbar.make(v, "Topic successfully added.", Snackbar.LENGTH_LONG)
-                                //        .setAction("Action", null).show();
                                 topicsLVAdapter.swapCursor(db.getTopics(0));
                                 topicEdit.setText("");
+                                bindService(new Intent(getApplicationContext(), MQTTService.class),
+                                        new ServiceConnection() {
+                                            @SuppressWarnings("unchecked")
+                                            @Override
+                                            public void onServiceConnected(ComponentName className, final IBinder service) {
+                                                MQTTService mqttService = ((MQTTService.LocalBinder<MQTTService>) service).getService();
+                                                mqttService.subscribeToTopic(topic);
+                                                unbindService(this);
+                                            }
+
+                                            @Override
+                                            public void onServiceDisconnected(ComponentName name) {
+                                            }
+                                        },
+                                        0);
                                 break;
                             case 1:
                                 Snackbar.make(v, "Topic already added.", Snackbar.LENGTH_LONG)
@@ -144,5 +159,11 @@ public class SubscribeActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume(){
+        topicsLVAdapter.swapCursor(db.getTopics(0));
+        super.onResume();
     }
 }

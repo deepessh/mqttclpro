@@ -1,49 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:padding="10dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Large Text"
+        android:text="1234567890123456789"
         android:id="@+id/topic_tv"
-        android:layout_marginTop="20dp"
         android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:ellipsize="end"
+        android:maxEms="9"
+        android:singleLine="true"
+        android:textColor="#000"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="0"
+        android:text="1"
         android:id="@+id/message_count"
         android:background="@drawable/circular_bg"
         android:singleLine="true"
         android:textColor="#ffffff"
-        android:layout_marginEnd="30dp"
-        android:layout_alignTop="@+id/topic_tv"
+        android:visibility="invisible"
         android:layout_alignEnd="@+id/timestamp_tv"
-        android:visibility="invisible"/>
+        android:layout_below="@+id/topic_tv"
+        />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="No message received."
+        android:text="No message received"
         android:id="@+id/message_tv"
-        android:layout_marginTop="18dp"
-        android:layout_below="@+id/message_count"
-        android:layout_alignParentStart="true" />
+        android:ellipsize="end"
+        android:maxEms="15"
+        android:singleLine="true"
+        android:layout_alignBottom="@+id/message_count"
+        android:layout_alignStart="@+id/topic_tv"
+        android:textColor="#000"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="22:14 02-01-2014"
+        android:text="YESTERDAY"
         android:id="@+id/timestamp_tv"
         android:singleLine="true"
-        android:layout_alignBaseline="@+id/message_tv"
-        android:layout_alignBottom="@+id/message_tv"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignTop="@+id/topic_tv"
+        android:layout_alignParentEnd="true"
+        android:textColor="#000"/>
 </RelativeLayout>

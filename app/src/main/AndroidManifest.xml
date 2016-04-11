@@ -46,6 +46,37 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="in.dc297.mqttclpro.SubscribeActivity" />
         </activity>
+        <activity
+            android:name=".PublishActivity"
+            android:label="@string/title_activity_publish"
+            android:parentActivityName=".SubscribeActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="in.dc297.mqttclpro.SubscribeActivity" />
+        </activity>
+        <activity
+            android:name=".PublishedTopicActivity"
+            android:label="@string/title_activity_published_topic"
+            android:parentActivityName=".PublishActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="in.dc297.mqttclpro.PublishActivity" />
+        </activity>
+        <activity
+            android:name=".tasker.PublishTaskerActivity"
+            android:label="@string/title_activity_publish_tasker"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="net.dinglisch.android.tasker.ACTION_EDIT_EVENT"/>
+            </intent-filter>
+        </activity>
+        <receiver android:name=".tasker.FireReceiver" android:exported="true" android:process=":background" >
+            <intent-filter>
+                <action android:name="in.dc297.mqttclpro.intent.action.FIRE_SETTING"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
