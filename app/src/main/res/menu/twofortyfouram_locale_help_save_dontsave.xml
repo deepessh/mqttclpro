@@ -18,10 +18,10 @@ tools:context="in.dc297.mqttclpro.SubscribeActivity" >
     <item android:id="@+id/twofortyfouram_locale_menu_dontsave"
         android:title="@string/twofortyfouram_locale_menu_dontsave"
         android:icon="@drawable/twofortyfouram_locale_ic_menu_dontsave"
-        app:showAsAction="ifRoom|withText" />
+        app:showAsAction="ifRoom" />
     <item android:id="@+id/twofortyfouram_locale_menu_save"
         android:title="@string/twofortyfouram_locale_menu_save"
         android:icon="@drawable/twofortyfouram_locale_ic_menu_save"
-        app:showAsAction="ifRoom|withText" />
+        app:showAsAction="ifRoom" />
 
 </menu>

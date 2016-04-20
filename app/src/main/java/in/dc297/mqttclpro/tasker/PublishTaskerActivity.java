@@ -3,6 +3,10 @@ package in.dc297.mqttclpro.tasker;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 
 import in.dc297.mqttclpro.R;
@@ -13,10 +17,10 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_publish_tasker);
-        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        final Bundle localeBundle = getIntent().getBundleExtra("in.dc297.mqttclpro.PUBLISH_BUNDLE");
+        final Bundle localeBundle = getIntent().getBundleExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE);
         /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -29,9 +33,13 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
         {
             if (PluginBundleManager.isBundleValid(localeBundle))
             {
+                Log.i("pubtaskact","bundle valid");
                 final String message =
                         localeBundle.getString(PluginBundleManager.BUNDLE_EXTRA_STRING_MESSAGE);
-                ((EditText) findViewById(android.R.id.text1)).setText(message);
+                final String topic =
+                        localeBundle.getString(PluginBundleManager.BUNDLE_EXTRA_STRING_TOPIC);
+                ((EditText) findViewById(R.id.editText)).setText(message);
+                ((EditText) findViewById(R.id.editText2)).setText(topic);
             }
         }
     }
@@ -41,9 +49,10 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
     {
         if (!isCanceled())
         {
-            final String message = ((EditText) findViewById(android.R.id.text1)).getText().toString();
+            final String topic = ((EditText) findViewById(R.id.editText)).getText().toString();
+            final String message = ((EditText) findViewById(R.id.editText2)).getText().toString();
 
-            if (message.length() > 0)
+            if (message.length() > 0 && topic.length() > 0)
             {
                 final Intent resultIntent = new Intent();
 
@@ -56,13 +65,13 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
                  * stored in the Bundle, as Locale's classloader will not recognize it).
                  */
                 final Bundle resultBundle =
-                        PluginBundleManager.generateBundle(getApplicationContext(), message);
-                resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE, resultBundle);
+                        PluginBundleManager.generateBundle(getApplicationContext(), message,topic);
 
+                resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE, resultBundle);
                 /*
                  * The blurb is concise status text to be displayed in the host's UI.
                  */
-                final String blurb = generateBlurb(getApplicationContext(), message);
+                final String blurb = generateBlurb(getApplicationContext(), topic+" : "+message);
                 resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_STRING_BLURB, blurb);
 
                 setResult(RESULT_OK, resultIntent);

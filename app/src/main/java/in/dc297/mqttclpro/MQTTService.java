@@ -21,6 +21,7 @@ import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
@@ -28,6 +29,8 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.provider.Settings.Secure;
 import android.util.Log;
+
+import net.dinglisch.android.tasker.TaskerPlugin;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -38,6 +41,9 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+
+import in.dc297.mqttclpro.tasker.PluginBundleManager;
+import in.dc297.mqttclpro.tasker.PublishTaskerActivity;
 
 /*
  * An example of how to implement an MQTT client in Android, able to receive
@@ -73,6 +79,10 @@ public class MQTTService extends Service implements MqttCallback
     public static final int MQTT_NOTIFICATION_UPDATE  = 2;
 
     private ConnectAsyncTask connectTask = null;
+
+    protected static final Intent INTENT_REQUEST_REQUERY =
+            new Intent(in.dc297.mqttclpro.tasker.Intent.ACTION_REQUEST_QUERY).putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_ACTIVITY,
+                    PublishTaskerActivity.class.getName());
 
     @Override
     public void connectionLost(Throwable cause) {
@@ -163,6 +173,13 @@ public class MQTTService extends Service implements MqttCallback
             // inform the user (for times when the Activity UI isn't running)
             //   that there is new data available
             notifyUser("New data received", topic, messageBody);
+
+            //tasker stuff starts
+            Bundle publishedBundle = PluginBundleManager.generateBundle(getApplicationContext(),topic,messageBody);
+            TaskerPlugin.Event.addPassThroughMessageID( INTENT_REQUEST_REQUERY );
+            TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY,publishedBundle);
+            sendBroadcast(INTENT_REQUEST_REQUERY);
+            //tasker stuff ends
         }
         //Log.i("mqtt","message arrived:"+messageBody);
         // receiving this message will have kept the connection alive for us, so
@@ -1129,7 +1146,7 @@ public class MQTTService extends Service implements MqttCallback
                 //  keep alive messages can be sent
                 // we schedule the first one of these now
                 scheduleNextPing();
-                if(mqttClient.isConnected()) subscribeToTopics();
+                if(mqttClient!=null) {if(mqttClient.isConnected()) subscribeToTopics();}
                 return true;
             }
             catch (MqttException e)

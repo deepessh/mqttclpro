@@ -182,7 +182,7 @@ public final class Intent
      * Although the maximum size is about 100 kilobytes, plug-ins SHOULD keep Bundles much smaller for
      * performance and memory usage reasons.
      */
-    public static final String EXTRA_BUNDLE = "com.twofortyfouram.locale.intent.extra.BUNDLE"; //$NON-NLS-1$
+    public static final String EXTRA_BUNDLE = "in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE"; //$NON-NLS-1$
 
     /**
      * Type: {@code String}.

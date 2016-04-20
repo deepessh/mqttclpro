@@ -67,7 +67,9 @@
         <activity
             android:name=".tasker.PublishTaskerActivity"
             android:label="@string/title_activity_publish_tasker"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:exported="true"
+            >
             <intent-filter>
                 <action android:name="net.dinglisch.android.tasker.ACTION_EDIT_EVENT"/>
             </intent-filter>
@@ -75,6 +77,18 @@
         <receiver android:name=".tasker.FireReceiver" android:exported="true" android:process=":background" >
             <intent-filter>
                 <action android:name="in.dc297.mqttclpro.intent.action.FIRE_SETTING"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".tasker.QueryReceiver"
+            android:exported="true"
+            android:process=":background"
+            >
+
+            <!-- this Intent filter allows the plug-in to discovered by Locale and be queried -->
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.QUERY_CONDITION" />
             </intent-filter>
         </receiver>
     </application>

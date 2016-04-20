@@ -19,6 +19,15 @@ import android.util.Log;
 
 public final class PluginBundleManager
 {
+
+    /**
+     * Type: {@code boolean}.
+     * <p>
+     * True means display is on. False means off.
+     */
+    public static final String BUNDLE_EXTRA_BOOLEAN_STATE =
+            "com.yourcompany.yourcondition.extra.BOOLEAN_STATE"; //$NON-NLS-1$
+
     /**
      * Type: {@code String}.
      * <p>
@@ -38,6 +47,9 @@ public final class PluginBundleManager
      */
     public static final String BUNDLE_EXTRA_INT_VERSION_CODE =
             "in.dc297.mqttclpro.extra.INT_VERSION_CODE"; //$NON-NLS-1$
+
+    public static final String BUNDLE_EXTRA_STRING_TOPIC =
+            "in.dc297.mqttclpro.extra.STRING_TOPIC";
 
     /**
      * Method to verify the content of the bundle are correct.
@@ -63,6 +75,15 @@ public final class PluginBundleManager
             {
                 Log.e(Constants.LOG_TAG,
                         String.format("bundle must contain extra %s", BUNDLE_EXTRA_STRING_MESSAGE)); //$NON-NLS-1$
+            }
+            return false;
+        }
+        if (!bundle.containsKey(BUNDLE_EXTRA_STRING_TOPIC))
+        {
+            if (Constants.IS_LOGGABLE)
+            {
+                Log.e(Constants.LOG_TAG,
+                        String.format("bundle must contain extra %s", BUNDLE_EXTRA_STRING_TOPIC)); //$NON-NLS-1$
             }
             return false;
         }
@@ -120,11 +141,12 @@ public final class PluginBundleManager
      * @param message The toast message to be displayed by the plug-in. Cannot be null.
      * @return A plug-in bundle.
      */
-    public static Bundle generateBundle(final Context context, final String message)
+    public static Bundle generateBundle(final Context context, final String message, final String topic)
     {
         final Bundle result = new Bundle();
         result.putInt(BUNDLE_EXTRA_INT_VERSION_CODE, Constants.getVersionCode(context));
         result.putString(BUNDLE_EXTRA_STRING_MESSAGE, message);
+        result.putString(BUNDLE_EXTRA_STRING_TOPIC, topic);
 
         return result;
     }

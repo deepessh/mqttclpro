@@ -29,13 +29,5 @@
         android:layout_alignParentStart="true"
         android:hint="@string/message"/>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Save"
-        android:id="@+id/button"
-        android:layout_below="@+id/editText2"
-        android:layout_alignParentStart="true" />
-
 
 </RelativeLayout>
