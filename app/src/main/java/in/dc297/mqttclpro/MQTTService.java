@@ -326,7 +326,7 @@ public class MQTTService extends Service implements MqttCallback
         new Thread(new Runnable() {
             @Override
             public void run() {
-                handleStart(intent, startId);
+                handleStart();
             }
         }, "MQTTservice").start();
     }
@@ -337,7 +337,7 @@ public class MQTTService extends Service implements MqttCallback
         new Thread(new Runnable() {
             @Override
             public void run() {
-                handleStart(intent, startId);
+                handleStart();
             }
         }, "MQTTservice").start();
 
@@ -347,7 +347,7 @@ public class MQTTService extends Service implements MqttCallback
         return START_STICKY;
     }
 
-    synchronized void handleStart(Intent intent, int startId)
+    synchronized void handleStart()
     {
         // before we start - check for a couple of reasons why we should stop
 
@@ -495,7 +495,6 @@ public class MQTTService extends Service implements MqttCallback
             settingsEditor.putString("servicestatus",statusDescription);
             settingsEditor.commit();
         }
-
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(MQTT_STATUS_INTENT);
         broadcastIntent.putExtra(MQTT_STATUS_MSG, statusDescription);
@@ -640,7 +639,7 @@ public class MQTTService extends Service implements MqttCallback
         }
     }
     public void publishMessage(String topic,String message,String qos){
-        db.addTopic(topic,1);
+        db.addTopic(topic,1,Integer.parseInt(qos));
         long message_id = db.addMessage(topic,message,1,Integer.parseInt(qos));
         if(mqttClient!=null){
             if(mqttClient.isConnected()){
@@ -653,6 +652,15 @@ public class MQTTService extends Service implements MqttCallback
                     e.printStackTrace();
                 }
             }
+            else{
+                Log.i("mqttserv","Not Connected");
+                handleStart();
+            }
+        }
+        else{
+            Log.i("mqttserv","Seems like a first start");
+            defineConnectionToBroker();
+            handleStart();
         }
     }
 
@@ -748,6 +756,7 @@ public class MQTTService extends Service implements MqttCallback
                 topics = new String[topicCursor.getCount()];
                 qos = new int[topicCursor.getCount()];
                 int i=0;
+                topicCursor.moveToFirst();
                 while(!topicCursor.isAfterLast()){
                     topics[i] = topicCursor.getString(topicCursor.getColumnIndexOrThrow("topic"));
                     qos[i] = 0;//topicCursor.getInt(topicCursor.getColumnIndexOrThrow("qos"));
@@ -783,15 +792,98 @@ public class MQTTService extends Service implements MqttCallback
         }
     }
 
+    private void pubUnpubMessages(){
+        String topic = null;
+        int qos = 0;
+        String message = null;
+        long message_id = 0;
+        boolean subscribed = false;
+        if (isAlreadyConnected() == false)
+        {
+            // quick sanity check - don't try and subscribe if we
+            //  don't have a connection
+
+            Log.e("mqtt", "Unable to publish as we are not connected");
+        }
+        else
+        {
+            try
+            {
+                Log.i("mqtt","publishing unpublished messages");
+                Cursor messageCursor = db.getUnpubMessages();
+                messageCursor.moveToFirst();
+                while(!messageCursor.isAfterLast()){
+                    topic = messageCursor.getString(messageCursor.getColumnIndexOrThrow("topic"));
+                    qos = messageCursor.getInt(messageCursor.getColumnIndexOrThrow("qos"));
+                    message = messageCursor.getString(messageCursor.getColumnIndexOrThrow("message"));
+                    message_id = messageCursor.getLong(messageCursor.getColumnIndexOrThrow("_id"));
+                    MqttMessage mqmessage = new MqttMessage(message.getBytes());
+                    mqmessage.setQos(qos);
+                    mqttClient.publish(topic,mqmessage);
+                    db.setMessagePublished(message_id);
+                    messageCursor.moveToNext();
+                }
+            }
+            catch (IllegalArgumentException e)
+            {
+                Log.e("mqtt", "subscribe failed - illegal argument", e);
+            }
+            catch (MqttException e)
+            {
+                Log.e("mqtt", "subscribe failed - MQTT exception", e);
+            }
+        }
+
+        if (subscribed == false)
+        {
+            //
+            // inform the app of the failure to subscribe so that the UI can
+            //  display an error
+            broadcastServiceStatus("Unable to subscribe");
+
+            //
+            // inform the user (for times when the Activity UI isn't running)
+            notifyUser("Unable to subscribe", "MQTT", "Unable to subscribe");
+        }
+    }
+
     public void subscribeToTopic(String topic){
         if(mqttClient!=null){
             if(mqttClient.isConnected()){
                 try {
                     mqttClient.subscribe(topic);
+                    broadcastServiceStatus("Connected");
+                } catch (MqttException e) {
+                    broadcastServiceStatus("Unable to Subscribe");
+                    e.printStackTrace();
+                }
+            }
+            else{
+                handleStart();
+            }
+        }
+        else{
+            defineConnectionToBroker();
+            handleStart();
+        }
+    }
+
+    public void unsubscribeFromTopic(String topic){
+        if(mqttClient!=null){
+            if(mqttClient.isConnected()){
+                try {
+                    mqttClient.unsubscribe(topic);
                 } catch (MqttException e) {
                     e.printStackTrace();
                 }
             }
+            else{
+                handleStart();
+            }
+        }
+        else{
+            defineConnectionToBroker();
+            handleStart();
         }
     }
 
@@ -872,7 +964,7 @@ public class MQTTService extends Service implements MqttCallback
                 // user has allowed background data - we start again - picking
                 //  up where we left off in handleStart before
                 defineConnectionToBroker();
-                handleStart(intent, 0);
+                handleStart();
             }
             else
             {
@@ -1146,7 +1238,12 @@ public class MQTTService extends Service implements MqttCallback
                 //  keep alive messages can be sent
                 // we schedule the first one of these now
                 scheduleNextPing();
-                if(mqttClient!=null) {if(mqttClient.isConnected()) subscribeToTopics();}
+                if(mqttClient!=null) {
+                    if(mqttClient.isConnected()){
+                        subscribeToTopics();
+                        pubUnpubMessages();
+                    }
+                }
                 return true;
             }
             catch (MqttException e)

@@ -14,21 +14,12 @@
     tools:context="in.dc297.mqttclpro.SubscribeActivity"
     android:hint="Add topic">
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/subscribeTopicEditText"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignEnd="@+id/subsctibeTopicListView"
-        android:singleLine="true" />
-
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/subsctibeTopicListView"
         android:layout_alignParentStart="true"
-        android:layout_above="@+id/subscribeTopicEditText"
+        android:layout_above="@+id/linearLayout"
         android:layout_below="@+id/statusTV" />
 
     <TextView
@@ -43,4 +34,37 @@
         android:background="@color/colorPrimaryDark"
         android:textAlignment="center"
         android:textColor="#FFF"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:orientation="horizontal"
+        android:id="@+id/linearLayout"
+        >
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/subscribeTopicEditText"
+            android:layout_alignEnd="@+id/subsctibeTopicListView"
+            android:hint="Topic"
+            android:layout_weight="1"
+            android:singleLine="true" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/qos_spinner_title"
+            />
+
+
+        <Spinner
+            android:layout_width="40dp"
+            android:layout_weight="0.3"
+            android:layout_height="wrap_content"
+            android:id="@+id/qos_spinner"
+            android:layout_above="@+id/message_edittext"
+            android:spinnerMode="dropdown"
+            android:prompt="@string/qos_spinner_title"
+            />
+    </LinearLayout>
 </RelativeLayout>

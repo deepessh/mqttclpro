@@ -54,6 +54,9 @@ public class TopicsListAdapter extends SimpleCursorAdapter {
                     if(!cursor.getString(cursor.getColumnIndexOrThrow("count")).equals("0")){
                         v.setVisibility(View.VISIBLE);
                     }
+                    else{
+                        v.setVisibility(View.INVISIBLE);
+                    }
                 }
                 v.setText(cursor.getString(cursor.getColumnIndexOrThrow(from[i])));
                 if(v.getId()==R.id.message_tv){

@@ -22,8 +22,10 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,13 +46,19 @@ public class SubscribeActivity extends AppCompatActivity {
         //start service
         Intent svc = new Intent(this, MQTTService.class);
         startService(svc);
-        Log.i("subs","starting service");
         db = new DBHelper(getApplicationContext());
         topicsLv = (ListView) findViewById(R.id.subsctibeTopicListView);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-       FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        final Spinner qosSpinner = (Spinner) findViewById(R.id.qos_spinner);
+
+        ArrayAdapter qosAdapter = ArrayAdapter.createFromResource(this, R.array.qos_array, android.R.layout.simple_spinner_item);
+        qosAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        qosSpinner.setAdapter(qosAdapter);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -70,8 +78,9 @@ public class SubscribeActivity extends AppCompatActivity {
                 @Override
                 public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                     final String topic = topicEdit.getText().toString();
-                    if (topic != null && !topic.equals("")) {
-                        int atret = db.addTopic(topic, 0);
+                    final String qos = qosSpinner.getSelectedItem().toString();
+                    if (topic != null && !topic.equals("") && qos!=null && !qos.equals("")) {
+                        int atret = db.addTopic(topic, 0,Integer.parseInt(qos));
                         switch (atret) {
                             case 0:
                                 topicsLVAdapter.swapCursor(db.getTopics(0));
@@ -105,6 +114,10 @@ public class SubscribeActivity extends AppCompatActivity {
                                         .setAction("Action", null).show();
                                 return true;
                         }
+                    }
+                    else{
+                        Snackbar.make(v,"Please make sure that you entered valid topic and selected correct QOS.",Snackbar.LENGTH_SHORT)
+                                .setAction("Error",null).show();
                     }
                     return false;
                 }
@@ -159,8 +172,24 @@ public class SubscribeActivity extends AppCompatActivity {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         switch(item.getItemId()) {
             case R.id.delete:
-                if(db.deleteTopic(((TextView)info.targetView.findViewById(R.id.topic_tv)).getText().toString(),0)==1){
+                final String topic = ((TextView)info.targetView.findViewById(R.id.topic_tv)).getText().toString();
+                if(db.deleteTopic(topic,0)==1){
                     Toast.makeText(getApplicationContext(),"Successfully deleted topic",Toast.LENGTH_LONG).show();
+                    bindService(new Intent(getApplicationContext(), MQTTService.class),
+                            new ServiceConnection() {
+                                @SuppressWarnings("unchecked")
+                                @Override
+                                public void onServiceConnected(ComponentName className, final IBinder service) {
+                                    MQTTService mqttService = ((MQTTService.LocalBinder<MQTTService>) service).getService();
+                                    mqttService.unsubscribeFromTopic(topic);
+                                    unbindService(this);
+                                }
+
+                                @Override
+                                public void onServiceDisconnected(ComponentName name) {
+                                }
+                            },
+                            0);
                     topicsLVAdapter.swapCursor(db.getTopics(0));
                 }
                 else{
@@ -205,6 +234,7 @@ public class SubscribeActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String status = intent.getExtras().get(MQTTService.MQTT_STATUS_MSG).toString();
+            statusTv.setText(status);
 
         }
     };
@@ -214,7 +244,7 @@ public class SubscribeActivity extends AppCompatActivity {
         filter.addAction(MQTTService.MQTT_MSG_RECEIVED_INTENT);
         registerReceiver(receiver, filter);
         IntentFilter filterStat = new IntentFilter();
-        filter.addAction(MQTTService.MQTT_STATUS_INTENT);
+        filterStat.addAction(MQTTService.MQTT_STATUS_INTENT);
         registerReceiver(statReceiver, filterStat);
         topicsLVAdapter.swapCursor(db.getTopics(0));
         super.onResume();
@@ -223,6 +253,7 @@ public class SubscribeActivity extends AppCompatActivity {
     @Override
     protected void onPause(){
         unregisterReceiver(receiver);
+        unregisterReceiver(statReceiver);
         super.onPause();
     }
 }

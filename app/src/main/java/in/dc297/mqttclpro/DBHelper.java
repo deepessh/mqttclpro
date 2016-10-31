@@ -27,7 +27,7 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        db.execSQL("CREATE TABLE IF NOT EXISTS topics(_id INTEGER PRIMARY KEY AUTOINCREMENT,topic TEXT,show_noti INTEGER DEFAULT 0,topic_type INTEGER DEFAULT 0)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS topics(_id INTEGER PRIMARY KEY AUTOINCREMENT,topic TEXT,show_noti INTEGER DEFAULT 0,topic_type INTEGER DEFAULT 0, qos INTEGER DEFAULT 0)");
         db.execSQL("CREATE TABLE IF NOT EXISTS messages(_id INTEGER PRIMARY KEY AUTOINCREMENT,topic_id INTEGER,message VARCHAR,timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,read INTEGER DEFAULT 0,topic TEXT,status INTEGER DEFAULT 1,qos INTEGER DEFAULT 0)");
 
     }
@@ -41,7 +41,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     }
 
-    public int addTopic(String topic,int topic_type){
+    public int addTopic(String topic,int topic_type,int qos){
         SQLiteDatabase db = getWritableDatabase();
         topic = DatabaseUtils.sqlEscapeString(topic);
         try{
@@ -57,7 +57,7 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         try {
             if (db.rawQuery("SELECT * FROM topics where topic=" + topic + " and topic_type=" + topic_type, null).getCount() == 0) {
-                db.execSQL("INSERT INTO topics (topic,topic_type) VALUES (" + topic + "," + topic_type + ")");
+                db.execSQL("INSERT INTO topics (topic,topic_type,qos) VALUES (" + topic + "," + topic_type + ","+ qos +")");
                 return 0;
             } else return 1;
         } catch (SQLException se) {
@@ -126,6 +126,20 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         return null;
     }
+
+    public Cursor getUnpubMessages(){
+        SQLiteDatabase db = getReadableDatabase();
+        try{
+            Cursor messagesCursor = db.rawQuery("SELECT _id,message,status,timestamp,topic,qos from messages where status=0 ORDER BY timestamp DESC",null);
+            return messagesCursor;
+        }
+        catch(SQLException se){
+            se.printStackTrace();
+        }
+        return null;
+    }
+
+
 
     public void setMessagesRead(String topic,int topicType){
         SQLiteDatabase db = getWritableDatabase();
