@@ -65,10 +65,7 @@ public abstract class AbstractPluginActivity extends AppCompatActivity
                 Log.e(Constants.LOG_TAG, "Calling package couldn't be found", e); //$NON-NLS-1$
             }
         }
-        if (null != callingApplicationLabel)
-        {
-            setTitle(callingApplicationLabel);
-        }
+        setTitle(getString(R.string.plugin_name));
     }
 
     @Override

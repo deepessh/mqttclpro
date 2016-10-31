@@ -74,7 +74,7 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
                 final String blurb = generateBlurb(getApplicationContext(), topic+" : "+message);
                 resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_STRING_BLURB, blurb);
 
-                setResult(RESULT_OK, resultIntent);
+                setResult(RESULT_OK, resultIntent)  ;
             }
         }
 

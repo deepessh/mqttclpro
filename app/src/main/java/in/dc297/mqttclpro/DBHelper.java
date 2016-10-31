@@ -144,4 +144,27 @@ public class DBHelper extends SQLiteOpenHelper {
         cv.put("status",1);
         db.update("messages",cv,"_id="+message_id,null);
     }
+
+    public int deleteTopic(String topic, int topicType){
+        SQLiteDatabase db = getWritableDatabase();
+        try{
+            String[] values = new String[1];
+            String topic_esc = DatabaseUtils.sqlEscapeString(topic);
+            Cursor topicCursor = db.rawQuery("SELECT _id from topics where topic="+topic_esc+" and topic_type="+topicType,null);
+            topicCursor.moveToFirst();
+            String topic_id =String.valueOf(topicCursor.getLong(0));
+            values[0] = topic_id;
+            db.delete("messages","topic_id=?",values);
+            db.delete("topics","_id=?",values);
+
+            Log.i("db","deleted message");
+            //db
+            return 1;
+        }
+        catch(SQLException se){
+            Log.e("db","Failed to add message",se);
+            return 0;
+        }
+
+    }
 }

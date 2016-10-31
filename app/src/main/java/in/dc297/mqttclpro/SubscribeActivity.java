@@ -1,7 +1,10 @@
 package in.dc297.mqttclpro;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -12,7 +15,9 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,6 +32,7 @@ import java.util.ArrayList;
 public class SubscribeActivity extends AppCompatActivity {
 
     private DBHelper db = null;
+    TextView statusTv;
     private ArrayList<TopicsListViewModel> tlvmal = null;
     ListView topicsLv = null;
     TopicsListAdapter topicsLVAdapter = null;
@@ -116,6 +122,7 @@ public class SubscribeActivity extends AppCompatActivity {
                         String timestamp = (String) timestampTV.getText();
                         if(timestamp==null || timestamp.equals("")){
                             Toast.makeText(getApplicationContext(),"No messages received.",Toast.LENGTH_SHORT).show();
+                            topicsLVAdapter.swapCursor(db.getTopics(0));
                             return;
                         }
                         if(topic!=null & !topic.equals("")){
@@ -128,12 +135,40 @@ public class SubscribeActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),"Unknown command",Toast.LENGTH_SHORT).show();
                 }
             });
+            registerForContextMenu(topicsLv);
         }
 
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-        TextView statusTv = (TextView) findViewById(R.id.statusTV);
+        statusTv = (TextView) findViewById(R.id.statusTV);
         if (statusTv != null) {
             statusTv.setText(settings.getString("servicestatus","Waiting for connection"));
+        }
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        if (v.getId()==R.id.subsctibeTopicListView) {
+            MenuInflater inflater = getMenuInflater();
+            inflater.inflate(R.menu.menu_subscribe_context, menu);
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        switch(item.getItemId()) {
+            case R.id.delete:
+                if(db.deleteTopic(((TextView)info.targetView.findViewById(R.id.topic_tv)).getText().toString(),0)==1){
+                    Toast.makeText(getApplicationContext(),"Successfully deleted topic",Toast.LENGTH_LONG).show();
+                    topicsLVAdapter.swapCursor(db.getTopics(0));
+                }
+                else{
+                    Toast.makeText(getApplicationContext(),"Failed to delete topic",Toast.LENGTH_LONG).show();
+                }
+                return true;
+            default:
+                return super.onContextItemSelected(item);
         }
     }
 
@@ -160,10 +195,34 @@ public class SubscribeActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            topicsLVAdapter.swapCursor(db.getTopics(0));
+        }
+    };
+    private BroadcastReceiver statReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String status = intent.getExtras().get(MQTTService.MQTT_STATUS_MSG).toString();
 
+        }
+    };
     @Override
     protected void onResume(){
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(MQTTService.MQTT_MSG_RECEIVED_INTENT);
+        registerReceiver(receiver, filter);
+        IntentFilter filterStat = new IntentFilter();
+        filter.addAction(MQTTService.MQTT_STATUS_INTENT);
+        registerReceiver(statReceiver, filterStat);
         topicsLVAdapter.swapCursor(db.getTopics(0));
         super.onResume();
+    }
+
+    @Override
+    protected void onPause(){
+        unregisterReceiver(receiver);
+        super.onPause();
     }
 }
