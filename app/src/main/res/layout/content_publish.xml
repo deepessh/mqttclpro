@@ -20,14 +20,31 @@
         android:layout_alignParentStart="true"
         android:layout_above="@+id/linearLayout" />
 
-    <EditText
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/message_edittext"
+        android:orientation="horizontal"
+        android:id="@+id/linearLayout1"
         android:layout_above="@+id/publish_button"
         android:layout_alignParentStart="true"
-        android:hint="Message"/>
-
+        >
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/message_edittext"
+            android:hint="Message"
+            android:layout_weight="1"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Retained"
+            android:gravity="center_vertical" />
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:id="@+id/message_retained"/>
+    </LinearLayout>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -40,7 +57,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/message_edittext"
+        android:layout_above="@+id/linearLayout1"
         android:orientation="horizontal"
         android:id="@+id/linearLayout"
         >

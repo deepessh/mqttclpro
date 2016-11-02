@@ -48,6 +48,19 @@
         android:selectAllOnFocus="true"
         android:singleLine="true"
         android:title="@string/pref_title_password" />
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="@string/pref_default_keepalive"
+        android:inputType="number"
+        android:key="keepalive"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_title_keepalive" />
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="cleansession"
+        android:title="@string/pref_title_cleansession" />
 
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
          dismiss it. -->

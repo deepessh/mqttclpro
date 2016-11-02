@@ -34,10 +34,12 @@ import java.util.ArrayList;
 public class SubscribeActivity extends AppCompatActivity {
 
     private DBHelper db = null;
-    TextView statusTv;
+    private TextView statusTv;
     private ArrayList<TopicsListViewModel> tlvmal = null;
-    ListView topicsLv = null;
-    TopicsListAdapter topicsLVAdapter = null;
+    private ListView topicsLv = null;
+    private TopicsListAdapter topicsLVAdapter = null;
+    private SharedPreferences settings;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,55 +78,59 @@ public class SubscribeActivity extends AppCompatActivity {
         if (topicEdit != null) {
             topicEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                 @Override
-                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                public boolean onEditorAction(final TextView v, int actionId, KeyEvent event) {
                     final String topic = topicEdit.getText().toString();
                     final String qos = qosSpinner.getSelectedItem().toString();
-                    if (topic != null && !topic.equals("") && qos!=null && !qos.equals("")) {
-                        int atret = db.addTopic(topic, 0,Integer.parseInt(qos));
-                        switch (atret) {
-                            case 0:
-                                topicsLVAdapter.swapCursor(db.getTopics(0));
-                                topicEdit.setText("");
-                                bindService(new Intent(getApplicationContext(), MQTTService.class),
-                                        new ServiceConnection() {
-                                            @SuppressWarnings("unchecked")
-                                            @Override
-                                            public void onServiceConnected(ComponentName className, final IBinder service) {
-                                                MQTTService mqttService = ((MQTTService.LocalBinder<MQTTService>) service).getService();
-                                                mqttService.subscribeToTopic(topic);
-                                                unbindService(this);
+                    bindService(new Intent(getApplicationContext(), MQTTService.class),
+                            new ServiceConnection() {
+                                @SuppressWarnings("unchecked")
+                                @Override
+                                public void onServiceConnected(ComponentName className, final IBinder service) {
+                                    MQTTService mqttService = ((MQTTService.LocalBinder<MQTTService>) service).getService();
+                                    if(mqttService.getConnectionStatus().equals(MQTTService.MQTTConnectionStatus.CONNECTED)){
+                                        if (topic != null && !topic.equals("") && qos!=null && !qos.equals("")) {
+                                            int atret = db.addTopic(topic, 0,Integer.parseInt(qos));
+                                            switch (atret) {
+                                                case 0:
+                                                    topicsLVAdapter.swapCursor(db.getTopics(0));
+                                                    topicEdit.setText("");
+                                                    mqttService.subscribeToTopic(topic,Integer.parseInt(qos));
+                                                    break;
+                                                case 1:
+                                                    Snackbar.make(v, "Topic already added.", Snackbar.LENGTH_LONG)
+                                                            .setAction("Error", null).show();
+                                                    break;
+                                                case 3:
+                                                    Snackbar.make(v,"Invalid MQTT Topic",Snackbar.LENGTH_SHORT)
+                                                            .setAction("Error",null).show();
+                                                    break;
+                                                default:
+                                                    Snackbar.make(v, "Unknown error Occurred.", Snackbar.LENGTH_LONG)
+                                                            .setAction("Action", null).show();
+                                                    break;
                                             }
+                                        }
+                                        else{
+                                            Snackbar.make(v,"Please make sure that you entered valid topic and selected correct QOS.",Snackbar.LENGTH_SHORT)
+                                                    .setAction("Error",null).show();
+                                        }
+                                    }
+                                    else{
+                                        Snackbar.make(v,"Oops seems like we are not connected! Please wait for connection.",Snackbar.LENGTH_SHORT)
+                                                .setAction("Error",null).show();
+                                    }
+                                    unbindService(this);
+                                }
 
-                                            @Override
-                                            public void onServiceDisconnected(ComponentName name) {
-                                            }
-                                        },
-                                        0);
-                                break;
-                            case 1:
-                                Snackbar.make(v, "Topic already added.", Snackbar.LENGTH_LONG)
-                                        .setAction("Error", null).show();
-                                return true;
-                            case 3:
-                                Snackbar.make(v,"Invalid MQTT Topic",Snackbar.LENGTH_SHORT)
-                                        .setAction("Error",null).show();
-                                return true;
-                            default:
-                                Snackbar.make(v, "Unknown error Occurred.", Snackbar.LENGTH_LONG)
-                                        .setAction("Action", null).show();
-                                return true;
-                        }
-                    }
-                    else{
-                        Snackbar.make(v,"Please make sure that you entered valid topic and selected correct QOS.",Snackbar.LENGTH_SHORT)
-                                .setAction("Error",null).show();
-                    }
+                                @Override
+                                public void onServiceDisconnected(ComponentName name) {
+                                }
+                            },
+                            0);
                     return false;
                 }
             });
-            //tlvmal = db.getTopics(0);
 
-            //topicsLv.setAdapter();
             topicsLv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -151,7 +157,7 @@ public class SubscribeActivity extends AppCompatActivity {
             registerForContextMenu(topicsLv);
         }
 
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        settings = PreferenceManager.getDefaultSharedPreferences(this);
         statusTv = (TextView) findViewById(R.id.statusTV);
         if (statusTv != null) {
             statusTv.setText(settings.getString("servicestatus","Waiting for connection"));
@@ -247,6 +253,7 @@ public class SubscribeActivity extends AppCompatActivity {
         filterStat.addAction(MQTTService.MQTT_STATUS_INTENT);
         registerReceiver(statReceiver, filterStat);
         topicsLVAdapter.swapCursor(db.getTopics(0));
+        statusTv.setText(settings.getString("servicestatus","Waiting for connection"));
         super.onResume();
     }
 

@@ -1,6 +1,8 @@
 package in.dc297.mqttclpro;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
@@ -28,6 +30,8 @@ import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.provider.Settings.Secure;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
 import net.dinglisch.android.tasker.TaskerPlugin;
@@ -41,6 +45,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.eclipse.paho.client.mqttv3.util.Strings;
 
 import in.dc297.mqttclpro.tasker.PluginBundleManager;
 import in.dc297.mqttclpro.tasker.PublishTaskerActivity;
@@ -72,13 +77,14 @@ public class MQTTService extends Service implements MqttCallback
     public static final String MQTT_STATUS_MSG    = "in.dc297.mqttclpro.STATUS_MSG";
 
     // constant used internally to schedule the next ping event
-    public static final String MQTT_PING_ACTION = "in.dc297.mqttclpro.PING";
+    public static final String MQTT_RECONNECT_ACTION = "in.dc297.mqttclpro.RECONNECT";
 
     // constants used by status bar notifications
     public static final int MQTT_NOTIFICATION_ONGOING = 1;
     public static final int MQTT_NOTIFICATION_UPDATE  = 2;
 
     private ConnectAsyncTask connectTask = null;
+    private SubscribeAsyncTask subTask = null;
 
     protected static final Intent INTENT_REQUEST_REQUERY =
             new Intent(in.dc297.mqttclpro.tasker.Intent.ACTION_REQUEST_QUERY).putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_ACTIVITY,
@@ -90,7 +96,7 @@ public class MQTTService extends Service implements MqttCallback
         //  by requesting a wake lock - we request the minimum possible wake
         //  lock - just enough to keep the CPU running until we've finished
         PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-        WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MQTT");
+        WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "mqttserv-connlost");
         wl.acquire();
 
 
@@ -109,7 +115,7 @@ public class MQTTService extends Service implements MqttCallback
             // inform the user (for times when the Activity UI isn't running)
             //   that we are no longer able to receive messages
             notifyUser("Connection lost - no network connection",
-                    "MQTT", "Connection lost - no network connection");
+                    "mqttserv", "Connection lost - no network connection");
 
             //
             // wait until the phone has a network connection again, when we
@@ -132,7 +138,7 @@ public class MQTTService extends Service implements MqttCallback
             broadcastServiceStatus("Connection lost - reconnecting...");
 
             // try to reconnect
-            connectToBroker();
+            handleStart();
         }
 
         // we're finished - if the phone is switched off, it's okay for the CPU
@@ -147,7 +153,7 @@ public class MQTTService extends Service implements MqttCallback
         //  by requesting a wake lock - we request the minimum possible wake
         //  lock - just enough to keep the CPU running until we've finished
         PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-        WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MQTT");
+        WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "mqttserv-messagearrived");
         wl.acquire();
 
         //
@@ -181,10 +187,6 @@ public class MQTTService extends Service implements MqttCallback
             sendBroadcast(INTENT_REQUEST_REQUERY);
             //tasker stuff ends
         }
-        //Log.i("mqtt","message arrived:"+messageBody);
-        // receiving this message will have kept the connection alive for us, so
-        //  we take advantage of this to postpone the next scheduled ping
-        scheduleNextPing();
 
         // we're finished - if the phone is switched off, it's okay for the CPU
         //  to sleep now
@@ -237,8 +239,8 @@ public class MQTTService extends Service implements MqttCallback
     private String          userName             = "";
     private String          password             = "";
     private boolean         ssl                  = false;
+    private boolean         cleanSession         = false;
     private MqttClientPersistence usePersistence       = null;
-    private boolean         cleanStart           = false;
 
     private DBHelper db = null;
 
@@ -265,6 +267,8 @@ public class MQTTService extends Service implements MqttCallback
     //  connect to the same broker using the same client ID.
     private String          mqttClientId = null;
 
+    private Reconnector reconnector;
+
 
 
     /************************************************************************/
@@ -279,20 +283,39 @@ public class MQTTService extends Service implements MqttCallback
     // receiver that notifies the Service when the user changes data use preferences
     private BackgroundDataChangeIntentReceiver dataEnabledReceiver;
 
-    // receiver that wakes the Service up when it's time to ping the server
-    private PingSender pingSender;
-
+    private ArrayList<String> prefs_key = new ArrayList<>(Arrays.asList("url","port","keepalive","user",
+            "password","cleansession","ssl_switch"));
+    //listener for shared preferences to reconnect if user changes server settings
+    SharedPreferences.OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+            // Implementation
+            //if(prefs.)
+            if(prefs_key.contains(key)) {
+                if (mqttClient != null) {
+                    if (mqttClient.isConnected()) {
+                        try {
+                            mqttClient.disconnect();
+                        } catch (MqttException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    mqttClient = null;
+                }
+                defineConnectionToBroker();
+                handleStart();
+            }
+        }
+    };
     /************************************************************************/
     /*    METHODS - core Service lifecycle methods                          */
     /************************************************************************/
 
     // see http://developer.android.com/guide/topics/fundamentals.html#lcycles
-
     @Override
     public void onCreate()
     {
         super.onCreate();
-        Log.i("mqtt","starting service");
+        Log.i("mqttserv","starting service");
         // reset status variable to initial state
         connectionStatus = MQTTConnectionStatus.INITIAL;
         db = new DBHelper(getApplicationContext());
@@ -311,6 +334,8 @@ public class MQTTService extends Service implements MqttCallback
         registerReceiver(dataEnabledReceiver,
                 new IntentFilter(ConnectivityManager.ACTION_BACKGROUND_DATA_SETTING_CHANGED));
 
+        reconnector = new Reconnector();
+        registerReceiver(reconnector,new IntentFilter(MQTT_RECONNECT_ACTION));
         // define the connection to the broker
         defineConnectionToBroker();
     }
@@ -396,7 +421,7 @@ public class MQTTService extends Service implements MqttCallback
             //  bar while we are running
             /*NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             Notification notification = new Notification(R.drawable.icon,
-                    "MQTT",
+                    "mqttserv",
                     System.currentTimeMillis());
             notification.flags |= Notification.FLAG_ONGOING_EVENT;
             notification.flags |= Notification.FLAG_NO_CLEAR;
@@ -404,7 +429,7 @@ public class MQTTService extends Service implements MqttCallback
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                     notificationIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
-            notification.setLatestEventInfo(this, "MQTT", "MQTT Service is running", contentIntent);
+            notification.setLatestEventInfo(this, "mqttserv", "MQTT Service is running", contentIntent);
             nm.notify(MQTT_NOTIFICATION_ONGOING, notification);
             */
 
@@ -441,14 +466,6 @@ public class MQTTService extends Service implements MqttCallback
                     new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         }
-
-        // creates the intents that are used to wake up the phone when it is
-        //  time to ping the server
-        if (pingSender == null)
-        {
-            pingSender = new PingSender();
-            registerReceiver(pingSender, new IntentFilter(MQTT_PING_ACTION));
-        }
     }
 
     @Override
@@ -473,6 +490,9 @@ public class MQTTService extends Service implements MqttCallback
             mBinder.close();
             mBinder = null;
         }
+        if(settings!=null) {
+            settings.unregisterOnSharedPreferenceChangeListener(listener);
+        }
     }
 
 
@@ -486,6 +506,9 @@ public class MQTTService extends Service implements MqttCallback
 
     private void broadcastServiceStatus(String statusDescription)
     {
+        if(statusDescription.equals("Connected")){
+            statusDescription = statusDescription+(mqttClient!=null ? " to "+mqttClient.getServerURI():"");
+        }
         // inform the app (for times when the Activity UI is running /
         //   active) of the current MQTT connection status so that it
         //   can update the UI accordingly
@@ -493,7 +516,7 @@ public class MQTTService extends Service implements MqttCallback
         if(settings!=null){
             SharedPreferences.Editor settingsEditor = settings.edit();
             settingsEditor.putString("servicestatus",statusDescription);
-            settingsEditor.commit();
+            settingsEditor.apply();
         }
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(MQTT_STATUS_INTENT);
@@ -515,23 +538,45 @@ public class MQTTService extends Service implements MqttCallback
 
     // methods used to notify the user of what has happened for times when
     //  the app Activity UI isn't running
-
+    int mId = 1;
     private void notifyUser(String alert, String title, String body)
     {
-        /*NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        Notification notification = new Notification(R.drawable.icon, alert,
-                System.currentTimeMillis());
-        notification.defaults |= Notification.DEFAULT_LIGHTS;
-        notification.defaults |= Notification.DEFAULT_SOUND;
-        notification.defaults |= Notification.DEFAULT_VIBRATE;
-        notification.flags |= Notification.FLAG_AUTO_CANCEL;
-        notification.ledARGB = Color.MAGENTA;
-        Intent notificationIntent = new Intent(this, MQTTNotifier.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                notificationIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        notification.setLatestEventInfo(this, title, body, contentIntent);
-        nm.notify(MQTT_NOTIFICATION_UPDATE, notification);*/
+        try {
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                        .setContentTitle(alert+" "+title)
+                        .setContentText(body)
+                        .setAutoCancel(true);
+        // Creates an explicit intent for an Activity in your app
+        Intent resultIntent = new Intent(this, SubscribeActivity.class);
+
+        // The stack builder object will contain an artificial back stack for the
+        // started Activity.
+        // This ensures that navigating backward from the Activity leads out of
+        // your application to the Home screen.
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        // Adds the back stack for the Intent (but not the Intent itself)
+        stackBuilder.addParentStack(SubscribeActivity.class);
+        // Adds the Intent that starts the Activity to the top of the stack
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        // mId allows you to update the notification later on.
+
+        mNotificationManager.notify(mId, mBuilder.build());
+        mId++;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            Log.e("mqttserv","Error during notify",e);
+        }
     }
 
 
@@ -622,46 +667,9 @@ public class MQTTService extends Service implements MqttCallback
         broadcastServiceStatus("Disconnected");
     }
 
-    public void reConnect(){
-        if(mqttClient!=null){
-            if(mqttClient.isConnected()){
-                try {
-                    mqttClient.disconnect();
-                } catch (MqttException e) {
-                    e.printStackTrace();
-                }
-            }
-            mqttClient = null;
-        }
-        defineConnectionToBroker();
-        if(isOnline()){
-            connectToBroker();
-        }
-    }
-    public void publishMessage(String topic,String message,String qos){
-        db.addTopic(topic,1,Integer.parseInt(qos));
-        long message_id = db.addMessage(topic,message,1,Integer.parseInt(qos));
-        if(mqttClient!=null){
-            if(mqttClient.isConnected()){
-                try {
-                    MqttMessage mqmessage = new MqttMessage(message.getBytes());
-                    mqmessage.setQos(Integer.parseInt(qos));
-                    mqttClient.publish(topic,mqmessage);
-                    db.setMessagePublished(message_id);
-                } catch (MqttException e) {
-                    e.printStackTrace();
-                }
-            }
-            else{
-                Log.i("mqttserv","Not Connected");
-                handleStart();
-            }
-        }
-        else{
-            Log.i("mqttserv","Seems like a first start");
-            defineConnectionToBroker();
-            handleStart();
-        }
+    public void publishMessage(String topic,String message,String qos,long message_id,boolean retained){
+        PublishAsyncTask pubTask = new PublishAsyncTask();
+        pubTask.execute(topic,qos,message,message_id,retained);
     }
 
 
@@ -676,12 +684,14 @@ public class MQTTService extends Service implements MqttCallback
     private void defineConnectionToBroker()
     {
         settings = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        settings.registerOnSharedPreferenceChangeListener(listener);
         brokerHostName = settings.getString("url", "broker.mqtt-dashboard.com");
         brokerPortNumber = Integer.parseInt(settings.getString("port", "1883"));
         userName = settings.getString("username", "");
         password = settings.getString("password","");
         ssl = settings.getBoolean("ssl_switch",false);
-
+        keepAliveSeconds = Short.parseShort(settings.getString("keepalive","1200"));
+        cleanSession = settings.getBoolean("cleansession",false);
         String protocol = "tcp";
         if(ssl){
             protocol = "ssl";
@@ -711,8 +721,28 @@ public class MQTTService extends Service implements MqttCallback
             //
             // inform the user (for times when the Activity UI isn't running)
             //   that we failed to connect
-            notifyUser("Unable to connect", "MQTT", "Unable to connect");
+            notifyUser("Unable to connect", "mqttserv", "Unable to connect");
+            scheduleNextConnect();
         }
+    }
+    private void scheduleNextConnect()
+    {
+        Log.i("mqttserv","Scheduling next connect");
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,
+                new Intent(MQTT_RECONNECT_ACTION),
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // in case it takes us a little while to do this, we try and do it
+        //  shortly before the keep alive period expires
+        // it means we're pinging slightly more frequently than necessary
+        Calendar wakeUpTime = Calendar.getInstance();
+        wakeUpTime.add(Calendar.SECOND, keepAliveSeconds);
+
+        AlarmManager aMgr = (AlarmManager) getSystemService(ALARM_SERVICE);
+        aMgr.set(AlarmManager.RTC_WAKEUP,
+                wakeUpTime.getTimeInMillis(),
+                pendingIntent);
     }
 
     /*
@@ -736,155 +766,22 @@ public class MQTTService extends Service implements MqttCallback
      */
     private void subscribeToTopics()
     {
-        String[] topics = null;
-        int[] qos = null;
-        boolean subscribed = false;
-        if (isAlreadyConnected() == false)
-        {
-            // quick sanity check - don't try and subscribe if we
-            //  don't have a connection
-
-            Log.e("mqtt", "Unable to subscribe as we are not connected");
-        }
-        else
-        {
-            try
-            {
-                Log.i("mqtt","subscribing");
-                Cursor topicCursor = db.getTopics(0);
-                topicCursor.moveToFirst();
-                topics = new String[topicCursor.getCount()];
-                qos = new int[topicCursor.getCount()];
-                int i=0;
-                topicCursor.moveToFirst();
-                while(!topicCursor.isAfterLast()){
-                    topics[i] = topicCursor.getString(topicCursor.getColumnIndexOrThrow("topic"));
-                    qos[i] = 0;//topicCursor.getInt(topicCursor.getColumnIndexOrThrow("qos"));
-                    topicCursor.moveToNext();
-                    i++;
-                }
-                Log.i("mqtt",topics.toString());
-                if(topics.length!=0){
-                    mqttClient.subscribe(topics, qos);
-                    subscribed = true;
-                }
-            }
-            catch (IllegalArgumentException e)
-            {
-                Log.e("mqtt", "subscribe failed - illegal argument", e);
-            }
-            catch (MqttException e)
-            {
-                Log.e("mqtt", "subscribe failed - MQTT exception", e);
-            }
-        }
-
-        if (subscribed == false)
-        {
-            //
-            // inform the app of the failure to subscribe so that the UI can
-            //  display an error
-            broadcastServiceStatus("Unable to subscribe");
-
-            //
-            // inform the user (for times when the Activity UI isn't running)
-            notifyUser("Unable to subscribe", "MQTT", "Unable to subscribe");
+        if(subTask==null || subTask.getStatus()== AsyncTask.Status.FINISHED) {
+            subTask = new SubscribeAsyncTask();
+            subTask.execute();
         }
     }
 
-    private void pubUnpubMessages(){
-        String topic = null;
-        int qos = 0;
-        String message = null;
-        long message_id = 0;
-        boolean subscribed = false;
-        if (isAlreadyConnected() == false)
-        {
-            // quick sanity check - don't try and subscribe if we
-            //  don't have a connection
-
-            Log.e("mqtt", "Unable to publish as we are not connected");
-        }
-        else
-        {
-            try
-            {
-                Log.i("mqtt","publishing unpublished messages");
-                Cursor messageCursor = db.getUnpubMessages();
-                messageCursor.moveToFirst();
-                while(!messageCursor.isAfterLast()){
-                    topic = messageCursor.getString(messageCursor.getColumnIndexOrThrow("topic"));
-                    qos = messageCursor.getInt(messageCursor.getColumnIndexOrThrow("qos"));
-                    message = messageCursor.getString(messageCursor.getColumnIndexOrThrow("message"));
-                    message_id = messageCursor.getLong(messageCursor.getColumnIndexOrThrow("_id"));
-                    MqttMessage mqmessage = new MqttMessage(message.getBytes());
-                    mqmessage.setQos(qos);
-                    mqttClient.publish(topic,mqmessage);
-                    db.setMessagePublished(message_id);
-                    messageCursor.moveToNext();
-                }
-            }
-            catch (IllegalArgumentException e)
-            {
-                Log.e("mqtt", "subscribe failed - illegal argument", e);
-            }
-            catch (MqttException e)
-            {
-                Log.e("mqtt", "subscribe failed - MQTT exception", e);
-            }
-        }
-
-        if (subscribed == false)
-        {
-            //
-            // inform the app of the failure to subscribe so that the UI can
-            //  display an error
-            broadcastServiceStatus("Unable to subscribe");
-
-            //
-            // inform the user (for times when the Activity UI isn't running)
-            notifyUser("Unable to subscribe", "MQTT", "Unable to subscribe");
-        }
-    }
-
-    public void subscribeToTopic(String topic){
-        if(mqttClient!=null){
-            if(mqttClient.isConnected()){
-                try {
-                    mqttClient.subscribe(topic);
-                    broadcastServiceStatus("Connected");
-                } catch (MqttException e) {
-                    broadcastServiceStatus("Unable to Subscribe");
-                    e.printStackTrace();
-                }
-            }
-            else{
-                handleStart();
-            }
-        }
-        else{
-            defineConnectionToBroker();
-            handleStart();
+    public void subscribeToTopic(String topic,int qos){
+        if(subTask==null || subTask.getStatus()== AsyncTask.Status.FINISHED) {
+            subTask = new SubscribeAsyncTask();
+            subTask.execute(topic,qos);
         }
     }
 
     public void unsubscribeFromTopic(String topic){
-        if(mqttClient!=null){
-            if(mqttClient.isConnected()){
-                try {
-                    mqttClient.unsubscribe(topic);
-                } catch (MqttException e) {
-                    e.printStackTrace();
-                }
-            }
-            else{
-                handleStart();
-            }
-        }
-        else{
-            defineConnectionToBroker();
-            handleStart();
-        }
+        UnsubscribeAsyncTask unsubTask = new UnsubscribeAsyncTask();
+        unsubTask.execute(topic);
     }
 
     /*
@@ -892,6 +789,7 @@ public class MQTTService extends Service implements MqttCallback
      */
     private void disconnectFromBroker()
     {
+        Log.i("mqttserv","Disconnecting from broker");
         // if we've been waiting for an Internet connection, this can be
         //  cancelled - we don't need to be told when we're connected now
         try
@@ -902,16 +800,15 @@ public class MQTTService extends Service implements MqttCallback
                 netConnReceiver = null;
             }
 
-            if (pingSender != null)
-            {
-                unregisterReceiver(pingSender);
-                pingSender = null;
+            if(reconnector!=null){
+                unregisterReceiver(reconnector);
+                reconnector = null;
             }
         }
         catch (Exception eee)
         {
             // probably because we hadn't registered it
-            Log.e("mqtt", "unregister failed", eee);
+            Log.e("mqttserv", "unregister failed", eee);
         }
 
         try
@@ -923,9 +820,9 @@ public class MQTTService extends Service implements MqttCallback
         }
         catch (MqttPersistenceException e)
         {
-            Log.e("mqtt", "disconnect failed - persistence exception", e);
+            Log.e("mqttserv", "disconnect failed - persistence exception", e);
         } catch (MqttException e) {
-            Log.e("mqtt", "disconnect failed - mqtt exception", e);
+            Log.e("mqttserv", "disconnect failed - mqtt exception", e);
             //e.printStackTrace();
         } finally
         {
@@ -955,7 +852,7 @@ public class MQTTService extends Service implements MqttCallback
             //  by requesting a wake lock - we request the minimum possible wake
             //  lock - just enough to keep the CPU running until we've finished
             PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-            WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MQTT");
+            WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "mqttserv-bgdatachanged");
             wl.acquire();
 
             ConnectivityManager cm = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
@@ -963,7 +860,6 @@ public class MQTTService extends Service implements MqttCallback
             {
                 // user has allowed background data - we start again - picking
                 //  up where we left off in handleStart before
-                defineConnectionToBroker();
                 handleStart();
             }
             else
@@ -999,110 +895,16 @@ public class MQTTService extends Service implements MqttCallback
             //  by requesting a wake lock - we request the minimum possible wake
             //  lock - just enough to keep the CPU running until we've finished
             PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-            WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MQTT");
+            WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "mqttserv-networkconnchange");
             wl.acquire();
 
-            if (isOnline())
-            {
-                // we have an internet connection - have another try at connecting
-                connectToBroker();
-            }
+            // we have an internet connection - have another try at connecting
+                handleStart();
+
 
             // we're finished - if the phone is switched off, it's okay for the CPU
             //  to sleep now
             wl.release();
-        }
-    }
-
-
-    /*
-     * Schedule the next time that you want the phone to wake up and ping the
-     *  message broker server
-     */
-    private void scheduleNextPing()
-    {
-        // When the phone is off, the CPU may be stopped. This means that our
-        //   code may stop running.
-        // When connecting to the message broker, we specify a 'keep alive'
-        //   period - a period after which, if the client has not contacted
-        //   the server, even if just with a ping, the connection is considered
-        //   broken.
-        // To make sure the CPU is woken at least once during each keep alive
-        //   period, we schedule a wake up to manually ping the server
-        //   thereby keeping the long-running connection open
-        // Normally when using this Java MQTT client library, this ping would be
-        //   handled for us.
-        // Note that this may be called multiple times before the next scheduled
-        //   ping has fired. This is good - the previously scheduled one will be
-        //   cancelled in favour of this one.
-        // This means if something else happens during the keep alive period,
-        //   (e.g. we receive an MQTT message), then we start a new keep alive
-        //   period, postponing the next ping.
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,
-                new Intent(MQTT_PING_ACTION),
-                PendingIntent.FLAG_UPDATE_CURRENT);
-
-        // in case it takes us a little while to do this, we try and do it
-        //  shortly before the keep alive period expires
-        // it means we're pinging slightly more frequently than necessary
-        Calendar wakeUpTime = Calendar.getInstance();
-        wakeUpTime.add(Calendar.SECOND, keepAliveSeconds);
-
-        AlarmManager aMgr = (AlarmManager) getSystemService(ALARM_SERVICE);
-        aMgr.set(AlarmManager.RTC_WAKEUP,
-                wakeUpTime.getTimeInMillis(),
-                pendingIntent);
-    }
-
-
-    /*
-     * Used to implement a keep-alive protocol at this Service level - it sends
-     *  a PING message to the server, then schedules another ping after an
-     *  interval defined by keepAliveSeconds
-     */
-    public class PingSender extends BroadcastReceiver
-    {
-        @Override
-        public void onReceive(Context context, Intent intent)
-        {
-            // Note that we don't need a wake lock for this method (even though
-            //  it's important that the phone doesn't switch off while we're
-            //  doing this).
-            // According to the docs, "Alarm Manager holds a CPU wake lock as
-            //  long as the alarm receiver's onReceive() method is executing.
-            //  This guarantees that the phone will not sleep until you have
-            //  finished handling the broadcast."
-            // This is good enough for our needs.
-
-            try
-            {
-                MqttMessage message = new MqttMessage("1".getBytes());
-                message.setQos(2);
-                mqttClient.publish("ping", message);
-            }
-            catch (MqttException e)
-            {
-                // if something goes wrong, it should result in connectionLost
-                //  being called, so we will handle it there
-                Log.e("mqtt", "ping failed - MQTT exception", e);
-
-                // assume the client connection is broken - trash it
-                try {
-                    mqttClient.disconnect();
-                }
-                catch (MqttPersistenceException e1) {
-                    Log.e("mqtt", "disconnect failed - persistence exception", e1);
-                } catch (MqttException e1) {
-                    Log.e("mqtt", "disconnect failed - mqtt exception", e1);
-                }
-
-                // reconnect
-                connectToBroker();
-            }
-
-            // start the next keep alive period
-            scheduleNextPing();
         }
     }
 
@@ -1129,7 +931,7 @@ public class MQTTService extends Service implements MqttCallback
 
     private boolean addReceivedMessageToStore(String key, String value,int qos)
     {
-        Log.i("mqtt","adding to db");
+        Log.i("mqttserv","adding to db");
         if(db.addMessage(key,value,0,qos)!=0){
             return true;
         }
@@ -1215,7 +1017,8 @@ public class MQTTService extends Service implements MqttCallback
             try
             {
                 MqttConnectOptions connOpts = new MqttConnectOptions();
-                connOpts.setCleanSession(true);
+                connOpts.setCleanSession(cleanSession);
+                connOpts.setKeepAliveInterval(keepAliveSeconds);
                 if(userName!=null & !userName.equals("")){
                     connOpts.setUserName(userName);
                     connOpts.setPassword(password != null ? password.toCharArray() : "".toCharArray());
@@ -1232,16 +1035,14 @@ public class MQTTService extends Service implements MqttCallback
 
                 // we are connected
                 connectionStatus = MQTTConnectionStatus.CONNECTED;
-                Log.i("mqtt","Successfully connected");
+                Log.i("mqttserv","Successfully connected");
 
                 // we need to wake up the phone's CPU frequently enough so that the
                 //  keep alive messages can be sent
                 // we schedule the first one of these now
-                scheduleNextPing();
                 if(mqttClient!=null) {
                     if(mqttClient.isConnected()){
                         subscribeToTopics();
-                        pubUnpubMessages();
                     }
                 }
                 return true;
@@ -1261,16 +1062,17 @@ public class MQTTService extends Service implements MqttCallback
                 }else {
                     connectionStatus = MQTTConnectionStatus.NOTCONNECTED_UNKNOWNREASON;
 
-                    Log.e("mqtt", "unable to connect" + brokerHostName + ":" + brokerPortNumber + " exception is" + e.getReasonCode(), e);
+                    Log.e("mqttserv", "unable to connect" + brokerHostName + ":" + brokerPortNumber + " exception is" + e.getReasonCode(), e);
                     //
                     // inform the app that we failed to connect so that it can update
                     //  the UI accordingly
                     broadcastServiceStatus("Unable to connect");
 
+                    scheduleNextConnect();
                     //
                     // inform the user (for times when the Activity UI isn't running)
                     //   that we failed to connect
-                    notifyUser("Unable to connect", "MQTT", "Unable to connect - will retry later");
+                    notifyUser("Unable to connect", "mqttserv", "Unable to connect - will retry later");
 
                     // if something has failed, we wait for one keep-alive period before
                     //   trying again
@@ -1281,9 +1083,137 @@ public class MQTTService extends Service implements MqttCallback
                     // a failure is often an intermittent network issue, however, so
                     //  some limited retry is a good idea
                 }
-                scheduleNextPing();
-
                 return false;
+            }
+        }
+    }
+
+    private class SubscribeAsyncTask extends AsyncTask {
+
+        @Override
+        protected Object doInBackground(Object[] params) {
+            if(params.length==2){
+                //we passed topic name to subscribe to
+                Log.i("mqttserv","Subscribing to "+(String)params[0]);
+                if(mqttClient!=null){
+                    if(mqttClient.isConnected()){
+                        try {
+                            mqttClient.subscribe((String)params[0],(int)params[1]);
+                        } catch (MqttException e) {
+                            //broadcastServiceStatus("Unable to Subscribe");
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }else {
+                Log.i("mqttserv","Subscribing to all topics");
+                //subscribe to all topics
+                String[] topics;
+                int[] qos;
+                boolean subscribed = false;
+                if (isAlreadyConnected() == false) {
+                    // quick sanity check - don't try and subscribe if we
+                    //  don't have a connection
+                } else {
+                    try {
+                        Cursor topicCursor = db.getTopics(0);
+                        topicCursor.moveToFirst();
+                        topics = new String[topicCursor.getCount()];
+                        qos = new int[topicCursor.getCount()];
+                        int i = 0;
+                        while (!topicCursor.isAfterLast()) {
+                            topics[i] = topicCursor.getString(topicCursor.getColumnIndexOrThrow("topic"));
+                            qos[i] = topicCursor.getInt(topicCursor.getColumnIndexOrThrow("qos"));
+                            topicCursor.moveToNext();
+                            i++;
+                        }
+                        Log.i("mqttserv", topics.toString());
+                        if (topics.length != 0) {
+                            mqttClient.subscribe(topics, qos);
+                            subscribed = true;
+                        }
+                    } catch (IllegalArgumentException e) {
+                        Log.e("mqttserv", "subscribe failed - illegal argument", e);
+                    } catch (MqttException e) {
+                        Log.e("mqttserv", "subscribe failed - MQTT exception", e);
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    private class PublishAsyncTask extends AsyncTask{
+        @Override
+        protected Object doInBackground(Object[] params) {
+            String topic = (String)params[0];
+            String qos = (String)params[1];
+            String message = (String) params[2];
+            long message_id = (long)params[3];
+            boolean retained = (boolean)params[4];
+            if(mqttClient!=null){
+                if(mqttClient.isConnected()){
+                    try {
+                        MqttMessage mqmessage = new MqttMessage(message.getBytes());
+                        mqmessage.setQos(Integer.parseInt(qos));
+                        mqmessage.setRetained(retained);
+                        mqttClient.publish(topic,mqmessage);
+                        db.setMessagePublished(message_id);
+                    } catch (MqttException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    private class UnsubscribeAsyncTask extends AsyncTask{
+        @Override
+        protected Object doInBackground(Object[] params) {
+            String topic = (String)params[0];
+            if(mqttClient!=null){
+                if(mqttClient.isConnected()){
+                    try {
+                        mqttClient.unsubscribe(topic);
+                    } catch (MqttException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    public class Reconnector extends BroadcastReceiver
+    {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+            // Note that we don't need a wake lock for this method (even though
+            //  it's important that the phone doesn't switch off while we're
+            //  doing this).
+            // According to the docs, "Alarm Manager holds a CPU wake lock as
+            //  long as the alarm receiver's onReceive() method is executing.
+            //  This guarantees that the phone will not sleep until you have
+            //  finished handling the broadcast."
+            // This is good enough for our needs.
+
+            try
+            {
+                if(mqttClient==null){
+                    defineConnectionToBroker();
+                }
+                if(!mqttClient.isConnected()){
+                    connectToBroker();
+                }
+            }
+            catch (Exception e)
+            {
+                broadcastServiceStatus("Unable to connect");
+                e.printStackTrace();
+                Log.e("mqttserv","Unable to reconnect",e);
+                scheduleNextConnect();
             }
         }
     }

@@ -47,7 +47,7 @@ public class MessagesListAdapter extends SimpleCursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
         super.bindView(view, context, cursor);
         if(cursor.getInt(cursor.getColumnIndexOrThrow("status")) == 0){
-            view.setBackgroundColor(Color.BLACK);
+            view.setBackgroundColor(Color.argb(77,255,0,0));
         }
     }
 }

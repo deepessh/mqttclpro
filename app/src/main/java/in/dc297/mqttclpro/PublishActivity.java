@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +24,8 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 public class PublishActivity extends AppCompatActivity {
 
+    DBHelper db;
+    TopicsListAdapter pubtopsAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,7 +33,7 @@ public class PublishActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final DBHelper db = new DBHelper(this);
+        db = new DBHelper(this);
         /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -52,7 +55,7 @@ public class PublishActivity extends AppCompatActivity {
         String[] from = new String[] { "topic", "count","message","timest"};
         int[] to = new int[]{R.id.topic_tv, R.id.message_count,R.id.message_tv,R.id.timestamp_tv };
 
-        final TopicsListAdapter pubtopsAdapter = new TopicsListAdapter(getApplicationContext(),R.layout.subscribed_topics_list_item,db.getTopics(1),from,to,0);
+        pubtopsAdapter = new TopicsListAdapter(getApplicationContext(),R.layout.subscribed_topics_list_item,db.getTopics(1),from,to,0);
         pubTopsLV.setAdapter(pubtopsAdapter);
 
         pubTopsLV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -70,7 +73,7 @@ public class PublishActivity extends AppCompatActivity {
 
         final EditText topicEditText = (EditText) findViewById(R.id.topic_edittext);
         final EditText messageEditText = (EditText) findViewById(R.id.message_edittext);
-
+        final Switch retainedSwitch = (Switch) findViewById(R.id.message_retained);
         Button publishButton = (Button) findViewById(R.id.publish_button);
         if (publishButton != null) {
             publishButton.setOnClickListener(new View.OnClickListener() {
@@ -79,37 +82,46 @@ public class PublishActivity extends AppCompatActivity {
                     final String topic = topicEditText.getText().toString();
                     final String message = messageEditText.getText().toString();
                     final String qos = qosSpinner.getSelectedItem().toString();
-
-                    if(topic==null || topic.equals("")){
-                        Toast.makeText(getApplicationContext(),"Invalid topic value",Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    if(message==null || message.equals("")){
-                        Toast.makeText(getApplicationContext(),"Invalid message value",Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    if(qos==null || qos.equals("")){
-                        Toast.makeText(getApplicationContext(),"Invalid QOS value",Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    try{
-                        MqttTopic.validate(topic,false);
-                    }
-                    catch(IllegalArgumentException ila){
-                        Toast.makeText(getApplicationContext(),"Invalid topic",Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    catch(IllegalStateException ise){
-                        Toast.makeText(getApplicationContext(),"Invalid topic",Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+                    final boolean retained = retainedSwitch.isChecked();
                     bindService(new Intent(getApplicationContext(), MQTTService.class), new ServiceConnection() {
                         @Override
                         public void onServiceConnected(ComponentName name, IBinder service) {
                             MQTTService mqttService = ((MQTTService.LocalBinder<MQTTService>) service).getService();
-                            mqttService.publishMessage(topic, message, qos);
+                            if(mqttService.getConnectionStatus().equals(MQTTService.MQTTConnectionStatus.CONNECTED)){
+                                if(topic==null || topic.equals("")){
+                                    Toast.makeText(getApplicationContext(),"Invalid topic value",Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                if(message==null || message.equals("")){
+                                    Toast.makeText(getApplicationContext(),"Invalid message value",Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                if(qos==null || qos.equals("")){
+                                    Toast.makeText(getApplicationContext(),"Invalid QOS value",Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                try{
+                                    MqttTopic.validate(topic,false);
+                                }
+                                catch(IllegalArgumentException ila){
+                                    Toast.makeText(getApplicationContext(),"Invalid topic",Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                catch(IllegalStateException ise){
+                                    Toast.makeText(getApplicationContext(),"Invalid topic",Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                db.addTopic(topic,1,Integer.parseInt(qos));
+                                long message_id = db.addMessage(topic,message,1,Integer.parseInt(qos));
+
+                                mqttService.publishMessage(topic, message, qos,message_id,retained);
+                                pubtopsAdapter.swapCursor(db.getTopics(1));
+
+                            }
+                            else{
+                                Toast.makeText(getApplicationContext(),"Oops seems like we are not connected! Please wait for connection.",Toast.LENGTH_SHORT).show();
+                            }
                             unbindService(this);
-                            pubtopsAdapter.swapCursor(db.getTopics(1));
                         }
 
                         @Override
@@ -119,6 +131,12 @@ public class PublishActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        pubtopsAdapter.swapCursor(db.getTopics(1));
     }
 
 }

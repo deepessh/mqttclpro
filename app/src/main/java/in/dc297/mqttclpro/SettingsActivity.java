@@ -2,18 +2,14 @@ package in.dc297.mqttclpro;
 
 
 import android.annotation.TargetApi;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -38,7 +34,7 @@ import java.util.List;
  * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
  * API Guide</a> for more information on developing a Settings UI.
  */
-public class SettingsActivity extends AppCompatPreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class SettingsActivity extends AppCompatPreferenceActivity {
     /**
      * A preference value change listener that updates the preference's summary
      * to reflect its new value.
@@ -124,7 +120,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements Sha
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).registerOnSharedPreferenceChangeListener(this);
         setupActionBar();
     }
 
@@ -177,25 +172,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements Sha
                 || GeneralPreferenceFragment.class.getName().equals(fragmentName)
                 || DataSyncPreferenceFragment.class.getName().equals(fragmentName)
                 || NotificationPreferenceFragment.class.getName().equals(fragmentName);
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        bindService(new Intent(getApplicationContext(), MQTTService.class),
-                new ServiceConnection() {
-                    @SuppressWarnings("unchecked")
-                    @Override
-                    public void onServiceConnected(ComponentName className, final IBinder service) {
-                        MQTTService mqttService = ((MQTTService.LocalBinder<MQTTService>) service).getService();
-                        mqttService.reConnect();
-                        unbindService(this);
-                    }
-
-                    @Override
-                    public void onServiceDisconnected(ComponentName name) {
-                    }
-                },
-                0);
     }
 
     /**
