@@ -28,6 +28,8 @@ import in.dc297.mqttclpro.MyIntentService;
 public final class FireReceiver extends BroadcastReceiver
 {
 
+    private static final String LOG_TAG = "tasker.FireReceiver";
+
     @Override
     public void onReceive(final Context context, final Intent intent)
     {
@@ -44,10 +46,9 @@ public final class FireReceiver extends BroadcastReceiver
             }
             return;
         }
-
-        Log.i("firereceiver","Received a fire :D"+intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC));
         Intent newIntent = new Intent(context, MyIntentService.class);
         newIntent.putExtras(intent);
+
         newIntent.setAction(MQTTService.MQTT_PUBLISH);
         context.startService(newIntent);
         //BundleScrubber.scrub(intent);

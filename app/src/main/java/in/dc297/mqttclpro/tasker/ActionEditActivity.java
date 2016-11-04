@@ -13,10 +13,14 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import net.dinglisch.android.tasker.TaskerPlugin;
+
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 import in.dc297.mqttclpro.R;
+
+import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
 
 public class ActionEditActivity extends AbstractPluginActivity {
 
@@ -49,10 +53,10 @@ public class ActionEditActivity extends AbstractPluginActivity {
         if (null == savedInstanceState)
         {
             if(message!=null && message!="") {
-                ((EditText) findViewById(R.id.editText)).setText(message);
+                ((EditText) findViewById(R.id.editText2)).setText(message);
             }
             if(topic!=null && topic!="") {
-                ((EditText) findViewById(R.id.editText2)).setText(topic);
+                ((EditText) findViewById(R.id.editText)).setText(topic);
             }
             retainedSwitch.setChecked(retained);
             if("0".equals(qos) || "1".equals(qos) || "2".equals(qos)) {
@@ -106,6 +110,9 @@ public class ActionEditActivity extends AbstractPluginActivity {
                  */
                 final String blurb = generateBlurb(getApplicationContext(), topic+" : "+message+" : "+qos + " : "+retained);
                 resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_STRING_BLURB, blurb);
+
+                //replace tasker variables
+                resultIntent.putExtra(TaskerPlugin.Setting.BUNDLE_KEY_VARIABLE_REPLACE_STRINGS,in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC+" "+in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
 
                 setResult(RESULT_OK, resultIntent)  ;
             }

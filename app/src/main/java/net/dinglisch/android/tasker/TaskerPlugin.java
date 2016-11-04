@@ -249,7 +249,7 @@ public class TaskerPlugin {
 		/**
 		 *	@see #setVariableReplaceKeys(Bundle, String[])
 	     */
-		private final static String		BUNDLE_KEY_VARIABLE_REPLACE_STRINGS = EXTRAS_PREFIX + "VARIABLE_REPLACE_KEYS";
+		public final static String		BUNDLE_KEY_VARIABLE_REPLACE_STRINGS = EXTRAS_PREFIX + "VARIABLE_REPLACE_KEYS";
 
 		/**
 		 *	@see #requestTimeoutMS(android.content.Intent, int)

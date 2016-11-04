@@ -5,11 +5,14 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.Context;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
+
+import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -44,7 +47,6 @@ public class MyIntentService extends IntentService {
                 String message = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
                 String qos = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_QOS);
                 boolean retained = intent.getExtras().getBoolean(in.dc297.mqttclpro.tasker.Intent.EXTRA_RETAINED);
-
                 try{
                     MqttTopic.validate(topic,false);
                 }
@@ -62,10 +64,6 @@ public class MyIntentService extends IntentService {
                     iae.printStackTrace();
                 }
 
-
-
-                Log.i("mqttsrv","Received a fire :D"+intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC));
-
                 db.addTopic(topic,1,Integer.parseInt(qos));
                 long mid = db.addMessage(topic,message,1,Integer.parseInt(qos));
                 mqttService.publishMessage(topic,message,qos,mid,retained);
@@ -75,7 +73,6 @@ public class MyIntentService extends IntentService {
             @Override
             public void onServiceDisconnected(ComponentName componentName) {
                 db.close();
-
             }
         },0);
     }

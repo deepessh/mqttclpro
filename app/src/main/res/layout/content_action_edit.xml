@@ -36,14 +36,6 @@
         android:text="@string/qos_spinner_title"
         android:layout_below="@+id/editText2"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="7dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/qos_spinner_title"
-        android:layout_below="@+id/editText2"
-        android:layout_alignParentStart="true"
         android:layout_marginStart="7dp"
         android:id="@+id/qosTV"/>
 

@@ -179,6 +179,7 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public void setMessagePublished(long message_id) {
+        if(message_id==0) return;
         SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put("status",1);
