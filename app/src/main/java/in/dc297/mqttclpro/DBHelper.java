@@ -145,7 +145,6 @@ public class DBHelper extends SQLiteOpenHelper {
             return 1;
         }
         catch(Exception e){
-            db.endTransaction();
             e.printStackTrace();
             return 0;
         }

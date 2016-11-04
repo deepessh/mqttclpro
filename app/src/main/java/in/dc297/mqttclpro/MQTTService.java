@@ -7,9 +7,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Locale;
 
 import android.app.AlarmManager;
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -19,7 +19,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Binder;
@@ -33,6 +32,7 @@ import android.provider.Settings.Secure;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
+import android.widget.Toast;
 
 import net.dinglisch.android.tasker.TaskerPlugin;
 
@@ -44,9 +44,9 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.eclipse.paho.client.mqttv3.util.Strings;
+import org.eclipse.paho.client.mqttv3.MqttTopic;
 
+import in.dc297.mqttclpro.tasker.Constants;
 import in.dc297.mqttclpro.tasker.PluginBundleManager;
 import in.dc297.mqttclpro.tasker.PublishTaskerActivity;
 
@@ -78,6 +78,8 @@ public class MQTTService extends Service implements MqttCallback
 
     // constant used internally to schedule the next ping event
     public static final String MQTT_RECONNECT_ACTION = "in.dc297.mqttclpro.RECONNECT";
+
+    public static final String MQTT_PUBLISH = "in.dc297.mqttclpro.PUBLISH";
 
     // constants used by status bar notifications
     public static final int MQTT_NOTIFICATION_ONGOING = 1;
@@ -181,7 +183,7 @@ public class MQTTService extends Service implements MqttCallback
             notifyUser("New data received", topic, messageBody);
 
             //tasker stuff starts
-            Bundle publishedBundle = PluginBundleManager.generateBundle(getApplicationContext(),topic,messageBody);
+            Bundle publishedBundle = PluginBundleManager.generateBundle(getApplicationContext(),messageBody,topic);
             TaskerPlugin.Event.addPassThroughMessageID( INTENT_REQUEST_REQUERY );
             TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY,publishedBundle);
             sendBroadcast(INTENT_REQUEST_REQUERY);
@@ -283,6 +285,8 @@ public class MQTTService extends Service implements MqttCallback
     // receiver that notifies the Service when the user changes data use preferences
     private BackgroundDataChangeIntentReceiver dataEnabledReceiver;
 
+    private FireTaskerReceiver taskerFireReceiver;
+
     private ArrayList<String> prefs_key = new ArrayList<>(Arrays.asList("url","port","keepalive","user",
             "password","cleansession","ssl_switch"));
     //listener for shared preferences to reconnect if user changes server settings
@@ -300,6 +304,10 @@ public class MQTTService extends Service implements MqttCallback
                         }
                     }
                     mqttClient = null;
+                }
+                if(connectTask!=null){
+                    connectTask.cancel(true);
+                    connectTask=null;
                 }
                 defineConnectionToBroker();
                 handleStart();
@@ -336,6 +344,10 @@ public class MQTTService extends Service implements MqttCallback
 
         reconnector = new Reconnector();
         registerReceiver(reconnector,new IntentFilter(MQTT_RECONNECT_ACTION));
+
+        taskerFireReceiver = new FireTaskerReceiver();
+
+        registerReceiver(taskerFireReceiver,new IntentFilter(MQTT_PUBLISH));
         // define the connection to the broker
         defineConnectionToBroker();
     }
@@ -472,7 +484,7 @@ public class MQTTService extends Service implements MqttCallback
     public void onDestroy()
     {
         super.onDestroy();
-
+        db.close();
         // disconnect immediately
         disconnectFromBroker();
 
@@ -484,6 +496,16 @@ public class MQTTService extends Service implements MqttCallback
         {
             unregisterReceiver(dataEnabledReceiver);
             dataEnabledReceiver = null;
+        }
+
+        if(reconnector!=null){
+            unregisterReceiver(reconnector);
+            reconnector = null;
+        }
+
+        if(taskerFireReceiver!=null){
+            unregisterReceiver(taskerFireReceiver);
+            taskerFireReceiver = null;
         }
 
         if (mBinder != null) {
@@ -803,6 +825,10 @@ public class MQTTService extends Service implements MqttCallback
             if(reconnector!=null){
                 unregisterReceiver(reconnector);
                 reconnector = null;
+            }
+            if(taskerFireReceiver!=null){
+                unregisterReceiver(taskerFireReceiver);
+                taskerFireReceiver = null;
             }
         }
         catch (Exception eee)
@@ -1163,6 +1189,12 @@ public class MQTTService extends Service implements MqttCallback
                         e.printStackTrace();
                     }
                 }
+                else{
+                    Toast.makeText(getApplicationContext(),"Unable to publish message as we are not connected",Toast.LENGTH_SHORT);
+                }
+            }
+            else{
+                Toast.makeText(getApplicationContext(),"Unable to publish message as we are not connected",Toast.LENGTH_SHORT);
             }
             return false;
         }
@@ -1215,6 +1247,39 @@ public class MQTTService extends Service implements MqttCallback
                 Log.e("mqttserv","Unable to reconnect",e);
                 scheduleNextConnect();
             }
+        }
+    }
+    public final class FireTaskerReceiver extends BroadcastReceiver
+    {
+        public FireTaskerReceiver() {
+        }
+
+        @Override
+        public void onReceive(final Context context, final Intent intent)
+        {
+        /*
+         * Always be strict on input parameters! A malicious third-party app could send a malformed Intent.
+         */
+
+            if (!MQTT_PUBLISH.equals(intent.getAction()))
+            {
+                if (Constants.IS_LOGGABLE)
+                {
+                    Log.e(Constants.LOG_TAG,
+                            String.format(Locale.US, "Received unexpected Intent action %s %s", intent.getAction(),MQTT_PUBLISH)); //$NON-NLS-1$
+                }
+                return;
+            }
+            //BundleScrubber.scrub(intent);
+
+            //final Bundle bundle = intent.getBundleExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE);
+            //BundleScrubber.scrub(bundle);
+
+        /*if (PluginBundleManager.isBundleValid(bundle))
+        {
+            final String message = bundle.getString(PluginBundleManager.BUNDLE_EXTRA_STRING_MESSAGE);
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+        }*/
         }
     }
 }

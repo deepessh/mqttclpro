@@ -34,7 +34,6 @@ public final class QueryReceiver extends BroadcastReceiver
          * Always be strict on input parameters! A malicious third-party app could send a malformed Intent.
          */
 
-        Log.i("qryrec","recvd qry");
         if (!in.dc297.mqttclpro.tasker.Intent.ACTION_QUERY_CONDITION.equals(intent.getAction()))
         {
             if (Constants.IS_LOGGABLE)
@@ -45,6 +44,9 @@ public final class QueryReceiver extends BroadcastReceiver
             return;
         }
 
+        final String topic = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
+        final String message = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
+
         int messageID = TaskerPlugin.Event.retrievePassThroughMessageID(intent);
         if ( messageID == -1 ) {
             setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_UNKNOWN);
@@ -52,7 +54,7 @@ public final class QueryReceiver extends BroadcastReceiver
         }
         BundleScrubber.scrub(intent);
 
-        final Bundle bundle = intent.getBundleExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE);
+        //final Bundle bundle = intent.getBundleExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE);
 
         final Bundle publishedBundle = TaskerPlugin.Event.retrievePassThroughData(intent);
 
@@ -62,7 +64,10 @@ public final class QueryReceiver extends BroadcastReceiver
         if(publishedBundle!=null) {
             publishedTopic = publishedBundle.getString(PluginBundleManager.BUNDLE_EXTRA_STRING_TOPIC);
             publishedMessage = publishedBundle.getString(PluginBundleManager.BUNDLE_EXTRA_STRING_MESSAGE);
-            Log.i("qryrec",publishedMessage);
+            if(!publishedTopic.equals(topic)){
+                setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_UNSATISFIED);
+                return;
+            }
         }
         else{
             setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_UNSATISFIED);
@@ -74,25 +79,11 @@ public final class QueryReceiver extends BroadcastReceiver
             return;
         }
 
-        BundleScrubber.scrub(bundle);
-
-        if(bundle!=null) {
-            Log.i("qryrec", bundle.toString());
-        }
-        else{
-            Log.i("qryrec", "bundle null");
-        }
-
-        if (PluginBundleManager.isBundleValid(bundle))
+        if (Constants.IS_LOGGABLE)
         {
-            final String topic = bundle.getString("topic");
-            final String message = bundle.getString("message");
-
-            if (Constants.IS_LOGGABLE)
-            {
-                Log.v(Constants.LOG_TAG,"Received a query."); //$NON-NLS-1$
-            }
+            Log.v(Constants.LOG_TAG,"Received a query."); //$NON-NLS-1$
         }
+
         setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_SATISFIED);
     }
 }

@@ -86,7 +86,8 @@
     <string name="title_activity_message">Messages</string>
     <string name="title_activity_publish">Publish Messages</string>
     <string name="title_activity_published_topic">Published messages</string>
-    <string name="title_activity_publish_tasker">PublishTaskerActivity</string>
+    <string name="title_activity_publish_tasker">Edit Condition</string>
+    <string name="title_activity_action_edit">Publish MQTT Message</string>
     <string name="topic">Topic</string>
     <string name="message">Message</string>
     <string name="plugin_name">MQTT Publish</string>

@@ -16,10 +16,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
 import java.util.Locale;
+
+import in.dc297.mqttclpro.MQTTService;
+import in.dc297.mqttclpro.MyIntentService;
 
 public final class FireReceiver extends BroadcastReceiver
 {
@@ -41,15 +45,20 @@ public final class FireReceiver extends BroadcastReceiver
             return;
         }
 
+        Log.i("firereceiver","Received a fire :D"+intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC));
+        Intent newIntent = new Intent(context, MyIntentService.class);
+        newIntent.putExtras(intent);
+        newIntent.setAction(MQTTService.MQTT_PUBLISH);
+        context.startService(newIntent);
         //BundleScrubber.scrub(intent);
 
-        final Bundle bundle = intent.getBundleExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE);
+        //final Bundle bundle = intent.getBundleExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE);
         //BundleScrubber.scrub(bundle);
 
-        if (PluginBundleManager.isBundleValid(bundle))
+        /*if (PluginBundleManager.isBundleValid(bundle))
         {
             final String message = bundle.getString(PluginBundleManager.BUNDLE_EXTRA_STRING_MESSAGE);
             Toast.makeText(context, message, Toast.LENGTH_LONG).show();
-        }
+        }*/
     }
 }
