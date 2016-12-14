@@ -217,7 +217,8 @@ public class MQTTService extends Service implements MqttCallback
         //     disconnection
         NOTCONNECTED_DATADISABLED,          // can't connect because the user
         //     has disabled data access
-        NOTCONNECTED_UNKNOWNREASON          // failed to connect for some reason
+        NOTCONNECTED_UNKNOWNREASON,          // failed to connect for some reason
+        FIRST_RUN
     }
 
     // MQTT constants
@@ -684,6 +685,9 @@ public class MQTTService extends Service implements MqttCallback
             case NOTCONNECTED_WAITINGFORINTERNET:
                 status = "Unable to connect";
                 break;
+            case FIRST_RUN:
+                status = "Please define broker details";
+                break;
         }
 
         //
@@ -720,7 +724,7 @@ public class MQTTService extends Service implements MqttCallback
     {
         settings = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         settings.registerOnSharedPreferenceChangeListener(listener);
-        brokerHostName = settings.getString("url", "broker.mqtt-dashboard.com");
+        brokerHostName = settings.getString("url", "");
         brokerPortNumber = Integer.parseInt(settings.getString("port", "1883"));
         userName = settings.getString("username", "");
         password = settings.getString("password","");
@@ -1095,6 +1099,12 @@ public class MQTTService extends Service implements MqttCallback
                 // try to connect
                 if(mqttClient==null){
                     defineConnectionToBroker();
+                }
+                if("".equals(brokerHostName)){
+                    Log.i("mqttserv","first run");
+                    broadcastServiceStatus("Please define broker details");
+                    connectionStatus = MQTTConnectionStatus.FIRST_RUN;
+                    return true;
                 }
                 broadcastServiceStatus("Connecting...");
                 mqttClient.connect(connOpts);
