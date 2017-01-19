@@ -732,7 +732,7 @@ public class MQTTService extends Service implements MqttCallback
         settings.registerOnSharedPreferenceChangeListener(listener);
         brokerHostName = settings.getString("url", "");
         brokerPortNumber = Integer.parseInt(settings.getString("port", "1883"));
-        userName = settings.getString("username", "");
+        userName = settings.getString("user", "");
         password = settings.getString("password","");
         ssl = settings.getBoolean("ssl_switch",false);
         keepAliveSeconds = Short.parseShort(settings.getString("keepalive","1200"));
@@ -1116,7 +1116,6 @@ public class MQTTService extends Service implements MqttCallback
                     if(lastwill_topic!=null) {
                         MqttTopic.validate(lastwill_topic, false);
                         connOpts.setWill(lastwill_topic,lastwill_message.getBytes(),lastwill_qos,lastwill_retained);
-                        Log.i("mqttserv","set last will message");
                     }
                 }
                 catch(Exception e){
@@ -1127,7 +1126,6 @@ public class MQTTService extends Service implements MqttCallback
                     defineConnectionToBroker();
                 }
                 if("".equals(brokerHostName)){
-                    Log.i("mqttserv","first run");
                     broadcastServiceStatus("Please define broker details");
                     connectionStatus = MQTTConnectionStatus.FIRST_RUN;
                     return true;
