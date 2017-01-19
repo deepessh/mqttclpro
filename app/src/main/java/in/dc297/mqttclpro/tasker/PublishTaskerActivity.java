@@ -2,13 +2,22 @@ package in.dc297.mqttclpro.tasker;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 
+import java.util.ArrayList;
+
+import in.dc297.mqttclpro.DBHelper;
 import in.dc297.mqttclpro.R;
 
 public class PublishTaskerActivity extends AbstractPluginActivity {
@@ -30,13 +39,36 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
                         .setAction("Action", null).show();
             }
         });*/
+        Spinner topicSpinner = (Spinner) findViewById(R.id.editText);
+        DBHelper dbHelper = new DBHelper(this.getApplicationContext());
+
+        Cursor topicCursor = dbHelper.getTopics(0);
+        String[] topics = new String[topicCursor.getCount()];
+        topicCursor.moveToFirst();
+        int i=0;
+        int selIndex = 0;
+        while(!topicCursor.isAfterLast()){
+            topics[i] = topicCursor.getString(topicCursor.getColumnIndex("topic"));
+            if(topics[i].equals(topic)) selIndex = i;
+            i++;
+            topicCursor.moveToNext();
+        }
+
+        // Creating adapter for spinner
+        ArrayAdapter dataAdapter = new ArrayAdapter(this,
+                android.R.layout.simple_spinner_item,topics);
+
+        // Drop down layout style - list view with radio button
+        dataAdapter
+                .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        topicSpinner.setAdapter(dataAdapter);
         if (null == savedInstanceState)
         {
             if(message!=null && message!="") {
-                ((EditText) findViewById(R.id.editText)).setText(message);
+                ((EditText) findViewById(R.id.editText2)).setText(message);
             }
             if(topic!=null && topic!="") {
-                ((EditText) findViewById(R.id.editText2)).setText(topic);
+                topicSpinner.setSelection(selIndex);
             }
         }
     }
@@ -46,7 +78,7 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
     {
         if (!isCanceled())
         {
-            final String topic = ((EditText) findViewById(R.id.editText)).getText().toString();
+            final String topic = ((Spinner) findViewById(R.id.editText)).getSelectedItem().toString();
             final String message = ((EditText) findViewById(R.id.editText2)).getText().toString();
 
             if (message.length() > 0 && topic.length() > 0)

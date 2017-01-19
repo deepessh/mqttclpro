@@ -12,22 +12,32 @@
     tools:context=".tasker.PublishTaskerActivity"
     tools:showIn="@layout/activity_publish_tasker">
 
-    <EditText
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/editText"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        android:hint="@string/topic"/>
+        android:id="@+id/LL1">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/topic"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:padding="5pt" />
+        <Spinner
+            android:layout_width="350dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/editText"
+
+            android:layout_alignParentEnd="true"
+            android:hint="@string/topic"/>
+    </LinearLayout>
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/editText2"
-        android:layout_below="@+id/editText"
+        android:layout_below="@+id/LL1"
         android:layout_alignParentStart="true"
-        android:hint="@string/message"/>
+        android:hint="@string/message_tasker_var"/>
 
 
 </RelativeLayout>

@@ -16,6 +16,7 @@
 
     <string name="pref_title_display_name">Display name</string>
     <string name="pref_default_display_name">John Smith</string>
+    <string name="pref_header_lastwill">Last-Will</string>
 
     <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
     <string-array name="pref_example_list_titles">
@@ -73,7 +74,11 @@
     <string name="pref_title_cleansession">Clean Session</string>
     <string name="pref_title_ssl">Enable SSL</string>
     <string name="pref_title_url">URL</string>
-    <string name="pref_default_url">broker.hivemq.com</string>
+    <string name="pref_default_url"></string>
+    <string name="pref_title_retained">Retained</string>
+    <string name="pref_title_topic">Topic</string>
+    <string name="pref_title_message">Message</string>
+    <string name="pref_title_qos">QOS</string>
     <string name="pref_default_port">1883</string>
     <string name="pref_default_keepalive">1200</string>
     <string name="pref_title_port">Port</string>
@@ -90,6 +95,7 @@
     <string name="title_activity_action_edit">Publish MQTT Message</string>
     <string name="topic">Topic</string>
     <string name="message">Message</string>
+    <string name="message_tasker_var">Message tasker variable name</string>
     <string name="plugin_name">MQTT Publish</string>
     <string name="twofortyfouram_locale_menu_dontsave">Cancel</string>
     <string name="twofortyfouram_locale_menu_save">Save</string>

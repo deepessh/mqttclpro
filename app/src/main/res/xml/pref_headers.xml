@@ -7,10 +7,10 @@
         android:icon="@drawable/ic_info_black_24dp"
         android:title="@string/pref_header_server" />
 
-    <!--header
-        android:fragment="in.dc297.mqttclpro.SettingsActivity$NotificationPreferenceFragment"
+    <header
+        android:fragment="in.dc297.mqttclpro.SettingsActivity$LastWillPreferenceFragment"
         android:icon="@drawable/ic_notifications_black_24dp"
-        android:title="@string/pref_header_notifications" /-->
+        android:title="@string/pref_header_lastwill" />
 
     <!--header
         android:fragment="in.dc297.mqttclpro.SettingsActivity$DataSyncPreferenceFragment"

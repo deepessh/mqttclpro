@@ -85,5 +85,14 @@ public final class QueryReceiver extends BroadcastReceiver
         }
 
         setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_SATISFIED);
+        if ( TaskerPlugin.Setting.hostSupportsVariableReturn( intent.getExtras() ) ) {
+            Bundle vars = new Bundle();
+            vars.putString( "%"+message, publishedMessage );
+            Log.i("Query success","Returning var name "+message+" with value "+publishedMessage);
+            TaskerPlugin.addVariableBundle( getResultExtras( true ), vars );
+        }
+        else{
+            Log.i("Query success","Seems like host doesnt support variable setting");
+        }
     }
 }

@@ -250,6 +250,12 @@ public class MQTTService extends Service implements MqttCallback
     private boolean         cleanSession         = false;
     private MqttClientPersistence usePersistence       = null;
 
+    private String  lastwill_topic = "",
+                    lastwill_message = "";
+    private int     lastwill_qos = 0;
+    private boolean lastwill_retained = false;
+
+
     private DBHelper db = null;
 
     private SharedPreferences settings = null;
@@ -294,7 +300,7 @@ public class MQTTService extends Service implements MqttCallback
     private FireTaskerReceiver taskerFireReceiver;
 
     private ArrayList<String> prefs_key = new ArrayList<>(Arrays.asList("url","port","keepalive","user",
-            "password","cleansession","ssl_switch"));
+            "password","cleansession","ssl_switch", "lastwill_topic", "lastwill_message", "lastwill_qos", "lastwill_retained"));
     //listener for shared preferences to reconnect if user changes server settings
     SharedPreferences.OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
@@ -732,6 +738,17 @@ public class MQTTService extends Service implements MqttCallback
         keepAliveSeconds = Short.parseShort(settings.getString("keepalive","1200"));
         cleanSession = settings.getBoolean("cleansession",false);
         mqttClientId = generateClientId();
+
+        lastwill_topic = settings.getString("lastwill_topic","");
+        lastwill_message = settings.getString("lastwill_message","");
+        try{
+            lastwill_qos = Integer.parseInt(settings.getString("lastwill_qos","0"));
+        }
+        catch(Exception e){
+            lastwill_qos = 0;
+        }
+        lastwill_retained = settings.getBoolean("lastwill_retained",false);
+
         String protocol = "tcp";
         if(ssl){
             protocol = "ssl";
@@ -745,7 +762,6 @@ public class MQTTService extends Service implements MqttCallback
             // define the connection to the broker
             mqttClient = new MqttClient(mqttConnSpec,mqttClientId,usePersistence);
             mqttClient.setCallback(this);
-
             // register this client app has being able to receive messages
             //mqttClient.registerSimpleHandler(this);
         }
@@ -1095,6 +1111,16 @@ public class MQTTService extends Service implements MqttCallback
                 if(userName!=null & !userName.equals("")){
                     connOpts.setUserName(userName);
                     connOpts.setPassword(password != null ? password.toCharArray() : "".toCharArray());
+                }
+                try{
+                    if(lastwill_topic!=null) {
+                        MqttTopic.validate(lastwill_topic, false);
+                        connOpts.setWill(lastwill_topic,lastwill_message.getBytes(),lastwill_qos,lastwill_retained);
+                        Log.i("mqttserv","set last will message");
+                    }
+                }
+                catch(Exception e){
+
                 }
                 // try to connect
                 if(mqttClient==null){
