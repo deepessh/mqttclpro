@@ -57,6 +57,15 @@
         android:selectAllOnFocus="true"
         android:singleLine="true"
         android:title="@string/pref_title_keepalive" />
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="@string/pref_default_url"
+        android:inputType="textCapWords"
+        android:key="clientid"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_title_clientid" />
     <SwitchPreference
         android:defaultValue="false"
         android:key="cleansession"

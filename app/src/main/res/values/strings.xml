@@ -74,6 +74,7 @@
     <string name="pref_title_cleansession">Clean Session</string>
     <string name="pref_title_ssl">Enable SSL</string>
     <string name="pref_title_url">URL</string>
+    <string name="pref_title_clientid">Client ID</string>
     <string name="pref_default_url"></string>
     <string name="pref_title_retained">Retained</string>
     <string name="pref_title_topic">Topic</string>
