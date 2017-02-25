@@ -1229,6 +1229,8 @@ public class MQTTService extends Service implements MqttCallback
         protected void onPostExecute(Object result){
             if((boolean)result){
                 Toast.makeText(getApplicationContext(),"Unable to publish as we are not connected",Toast.LENGTH_LONG).show();
+                defineConnectionToBroker();
+                handleStart();
             }
         }
 

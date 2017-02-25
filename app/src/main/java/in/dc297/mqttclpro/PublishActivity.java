@@ -92,7 +92,7 @@ public class PublishActivity extends AppCompatActivity {
                                     Toast.makeText(getApplicationContext(),"Invalid topic value",Toast.LENGTH_SHORT).show();
                                     return;
                                 }
-                                if(message==null || message.equals("")){
+                                if(message==null){
                                     Toast.makeText(getApplicationContext(),"Invalid message value",Toast.LENGTH_SHORT).show();
                                     return;
                                 }
