@@ -11,6 +11,22 @@ buildscript {
         // in the individual module build.gradle files
     }
 }
+ext{
+
+    compileSdkVersion = 24
+    buildToolsVersion = '23.0.3'
+
+
+    serviceArchivesBaseName = 'org.eclipse.paho.android.service'
+    serviceVersion = '1.1.1'
+
+    clientVersion = '1.1.0'
+
+    mavenUrl = "https://repo.eclipse.org/content/repositories/paho-releases/"
+
+    supportLibVersion = '24.2.1'
+
+}
 
 allprojects {
     repositories {
