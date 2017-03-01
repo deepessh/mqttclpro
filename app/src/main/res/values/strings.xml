@@ -71,8 +71,10 @@
 
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="pref_description_ssl">Use SSL for connection</string>
+    <string name="pref_description_ws">Use Websockets for connection</string>
     <string name="pref_title_cleansession">Clean Session</string>
     <string name="pref_title_ssl">Enable SSL</string>
+    <string name="pref_title_ws">Use Websockets</string>
     <string name="pref_title_url">URL</string>
     <string name="pref_title_clientid">Client ID</string>
     <string name="pref_default_url"></string>

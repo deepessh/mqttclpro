@@ -98,6 +98,7 @@ public class MQTTService extends Service implements MqttCallback
     public static final int MQTT_NOTIFICATION_UPDATE  = 2;
 
     private ConnectAsyncTask connectTask = null;
+    private DisconnectAsyncTask disconnectTask = null;
     private SubscribeAsyncTask subTask = null;
 
     protected static final Intent INTENT_REQUEST_REQUERY =
@@ -254,11 +255,12 @@ public class MQTTService extends Service implements MqttCallback
     private String          userName             = "";
     private String          password             = "";
     private boolean         ssl                  = false;
+    private boolean         ws                   = false;
     private boolean         cleanSession         = false;
     private MqttClientPersistence usePersistence       = null;
 
     private String  lastwill_topic = "",
-                    lastwill_message = "";
+            lastwill_message = "";
     private int     lastwill_qos = 0;
     private boolean lastwill_retained = false;
 
@@ -307,22 +309,21 @@ public class MQTTService extends Service implements MqttCallback
     private FireTaskerReceiver taskerFireReceiver;
 
     private ArrayList<String> prefs_key = new ArrayList<>(Arrays.asList("url","port","keepalive","user",
-            "password","cleansession","ssl_switch", "lastwill_topic", "lastwill_message", "lastwill_qos", "lastwill_retained","clientid"));
+            "password","cleansession","ssl_switch", "lastwill_topic", "lastwill_message", "lastwill_qos", "lastwill_retained","clientid","ws_switch"));
     //listener for shared preferences to reconnect if user changes server settings
     SharedPreferences.OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
             // Implementation
             //if(prefs.)
             if(prefs_key.contains(key)) {
-                if (mqttClient != null) {
-                    if (mqttClient.isConnected()) {
-                        try {
-                            mqttClient.disconnect();
-                        } catch (MqttException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    mqttClient = null;
+                if(disconnectTask==null){
+                    disconnectTask = new DisconnectAsyncTask();
+                    disconnectTask.execute();
+                }
+                else{
+                    disconnectTask.cancel(true);
+                    disconnectTask = new DisconnectAsyncTask();
+                    disconnectTask.execute();
                 }
                 if(connectTask!=null){
                     connectTask.cancel(true);
@@ -357,7 +358,7 @@ public class MQTTService extends Service implements MqttCallback
         // register to be notified whenever the user changes their preferences
         //  relating to background data use - so that we can respect the current
         //  preference
-  //      dataEnabledReceiver = new BackgroundDataChangeIntentReceiver();
+        //      dataEnabledReceiver = new BackgroundDataChangeIntentReceiver();
         //registerReceiver(dataEnabledReceiver,
 //                new IntentFilter(ConnectivityManager.ACTION_BACKGROUND_DATA_SETTING_CHANGED));
 
@@ -742,6 +743,7 @@ public class MQTTService extends Service implements MqttCallback
         userName = settings.getString("user", "");
         password = settings.getString("password","");
         ssl = settings.getBoolean("ssl_switch",false);
+        ws  = settings.getBoolean("ws_switch",false);
         keepAliveSeconds = Short.parseShort(settings.getString("keepalive","1200"));
         cleanSession = settings.getBoolean("cleansession",false);
         String genClientId = generateClientId();
@@ -761,8 +763,14 @@ public class MQTTService extends Service implements MqttCallback
         lastwill_retained = settings.getBoolean("lastwill_retained",false);
 
         String protocol = "tcp";
+        if(ws) protocol = "ws";
         if(ssl){
-            protocol = "ssl";
+            if(ws) {
+                protocol = "wss";
+            }
+            else{
+                protocol = "ssl";
+            }
         }
         String mqttConnSpec = protocol+"://" + brokerHostName + ":" + brokerPortNumber;
 
@@ -969,7 +977,7 @@ public class MQTTService extends Service implements MqttCallback
     }*/
 
 
-   /************************************************************************/
+    /************************************************************************/
     /*   APP SPECIFIC - stuff that would vary for different uses of MQTT    */
     /************************************************************************/
 
@@ -1121,13 +1129,16 @@ public class MQTTService extends Service implements MqttCallback
                     if(mqttClient.isConnected()){
                         subscribeToTopics();
                     }
+                    else{
+                        Log.i(LOG_TAG,"Seems like we are not connected.");
+                    }
                 }
                 return true;
             }
             catch (MqttException e)
             {
                 // something went wrong!
-
+                e.printStackTrace();
                 if(e.getReasonCode()==32100){
                     connectionStatus = MQTTConnectionStatus.CONNECTED;
                     //try {
@@ -1276,6 +1287,22 @@ public class MQTTService extends Service implements MqttCallback
                     try {
                         mqttClient.unsubscribe(topic);
                         scheduleNextPing();
+                    } catch (MqttException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    private class DisconnectAsyncTask extends AsyncTask{
+        @Override
+        protected Object doInBackground(Object[] params) {
+            if(mqttClient!=null){
+                if(mqttClient.isConnected()){
+                    try {
+                        mqttClient.disconnect();
                     } catch (MqttException e) {
                         e.printStackTrace();
                     }

@@ -5,6 +5,11 @@
         android:key="ssl_switch"
         android:summary="@string/pref_description_ssl"
         android:title="@string/pref_title_ssl" />
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="ws_switch"
+        android:summary="@string/pref_description_ws"
+        android:title="@string/pref_title_ws" />
 
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
