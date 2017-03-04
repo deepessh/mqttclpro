@@ -7,8 +7,6 @@
  * Reference - https://gist.github.com/sharonbn/4104301"
  */
 package in.dc297.mqttclpro.SSL;
-import android.Manifest;
-import android.support.v4.content.ContextCompat;
 
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
