@@ -74,6 +74,9 @@ public class MQTTService extends Service implements MqttCallback
     /*    CONSTANTS                                                         */
     /************************************************************************/
 
+    public static final int DEFAULT_QOS = 0;
+    public static final boolean DEFAULT_RETAINED = false;
+
     // something unique to identify your app - used for stuff like accessing
     //   application preferences
     public static final String APP_ID = "in.dc297.mqttclpro";
