@@ -145,7 +145,6 @@ public class MQTTService extends Service implements MqttCallback
             //   switched from wifi to cell, or vice versa
             //   so we try to reconnect immediately
             //
-
             connectionStatus = MQTTConnectionStatus.NOTCONNECTED_UNKNOWNREASON;
 
             // inform the app that we are not connected any more, and are
@@ -181,7 +180,7 @@ public class MQTTService extends Service implements MqttCallback
         //
         //  for times when the app's Activity UI is not running, the Service
         //   will need to safely store the data that it receives
-        if (addReceivedMessageToStore(topic, messageBody,message.getQos()))
+        if (addReceivedMessageToStore(topic, messageBody,message.getQos(),message.isRetained()))
         {
             // this is a new message - a value we haven't seen before
 
@@ -489,6 +488,9 @@ public class MQTTService extends Service implements MqttCallback
                 //scheduleNextConnect(); we wont schedule next connect if we are not connected to internet
             }
         }
+        else{
+            broadcastServiceStatus("Connected");
+        }
 
         // changes to the phone's network - such as bouncing between WiFi
         //  and mobile data networks - can break the MQTT connection
@@ -560,6 +562,7 @@ public class MQTTService extends Service implements MqttCallback
     {
         if(statusDescription.equals("Connected")){
             statusDescription = statusDescription+(mqttClient!=null ? " to "+mqttClient.getServerURI():"");
+            connectionStatus = MQTTConnectionStatus.CONNECTED;
         }
         // inform the app (for times when the Activity UI is running /
         //   active) of the current MQTT connection status so that it
@@ -667,6 +670,7 @@ public class MQTTService extends Service implements MqttCallback
     // public methods that can be used by Activities that bind to the Service
     //
 
+
     public MQTTConnectionStatus getConnectionStatus()
     {
         return connectionStatus;
@@ -734,7 +738,7 @@ public class MQTTService extends Service implements MqttCallback
      * Create a client connection object that defines our connection to a
      *   message broker server
      */
-    private void defineConnectionToBroker()
+    public void defineConnectionToBroker()
     {
         settings = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         settings.registerOnSharedPreferenceChangeListener(listener);
@@ -785,6 +789,24 @@ public class MQTTService extends Service implements MqttCallback
         }
         catch (MqttException e)
         {
+            e.printStackTrace();
+            // something went wrong!
+            mqttClient = null;
+            connectionStatus = MQTTConnectionStatus.NOTCONNECTED_UNKNOWNREASON;
+
+            //
+            // inform the app that we failed to connect so that it can update
+            //  the UI accordingly
+            broadcastServiceStatus("Invalid connection parameters");
+
+            //
+            // inform the user (for times when the Activity UI isn't running)
+            //   that we failed to connect
+            notifyUser("Unable to connect", LOG_TAG, "Unable to connect");
+            scheduleNextConnect();
+        }
+        catch(IllegalArgumentException ilae){
+            ilae.printStackTrace();
             // something went wrong!
             mqttClient = null;
             connectionStatus = MQTTConnectionStatus.NOTCONNECTED_UNKNOWNREASON;
@@ -934,7 +956,7 @@ public class MQTTService extends Service implements MqttCallback
     /*
      * Checks if the MQTT client thinks it has an active connection
      */
-    private boolean isAlreadyConnected()
+    public boolean isAlreadyConnected()
     {
         return ((mqttClient != null) && (mqttClient.isConnected() == true));
     }
@@ -996,10 +1018,10 @@ public class MQTTService extends Service implements MqttCallback
 
     private Hashtable<String, String> dataCache = new Hashtable<String, String>();
 
-    private boolean addReceivedMessageToStore(String key, String value,int qos)
+    private boolean addReceivedMessageToStore(String key, String value,int qos,boolean retained)
     {
         Log.i(LOG_TAG,"adding to db");
-        if(db.addMessage(key,value,0,qos)!=0){
+        if(db.addMessage(key,value,0,qos,retained)!=0){
             return true;
         }
         return false;
@@ -1130,7 +1152,19 @@ public class MQTTService extends Service implements MqttCallback
                         subscribeToTopics();
                     }
                     else{
-                        Log.i(LOG_TAG,"Seems like we are not connected.");
+                        Log.i(LOG_TAG,"not sure as to why we are not connected. so attempting to reconnect and subscribe to topics");
+                        broadcastServiceStatus("Connecting...");
+                        //mqttClient.disconnect();
+                        mqttClient.connect(connOpts);
+                        if(mqttClient.isConnected()) {
+                            subscribeToTopics();
+                            broadcastServiceStatus("Connected");
+                            Log.i(LOG_TAG,"connected! yayy!");
+                        }
+                        else{
+                            broadcastServiceStatus("Unable to connect!");
+                            Log.i(LOG_TAG,"unable to connect");
+                        }
                     }
                 }
                 return true;

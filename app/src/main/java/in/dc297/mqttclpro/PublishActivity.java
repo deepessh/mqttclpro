@@ -112,7 +112,7 @@ public class PublishActivity extends AppCompatActivity {
                                     return;
                                 }
                                 db.addTopic(topic,1,Integer.parseInt(qos));
-                                long message_id = db.addMessage(topic,message,1,Integer.parseInt(qos));
+                                long message_id = db.addMessage(topic,message,1,Integer.parseInt(qos),retained);
 
                                 mqttService.publishMessage(topic, message, qos,message_id,retained);
                                 pubtopsAdapter.swapCursor(db.getTopics(1));

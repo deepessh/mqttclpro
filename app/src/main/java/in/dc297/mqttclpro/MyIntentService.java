@@ -65,7 +65,7 @@ public class MyIntentService extends IntentService {
                 }
 
                 db.addTopic(topic,1,Integer.parseInt(qos));
-                long mid = db.addMessage(topic,message,1,Integer.parseInt(qos));
+                long mid = db.addMessage(topic,message,1,Integer.parseInt(qos),false);
                 mqttService.publishMessage(topic,message,qos,mid,retained);
                 unbindService(this);
             }

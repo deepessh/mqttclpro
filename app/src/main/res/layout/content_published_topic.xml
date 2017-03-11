@@ -14,8 +14,17 @@
 
     <ListView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/pub_tops_lv"
+        android:layout_below="@+id/statusTV" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Click on a message to republish"
+        android:id="@+id/statusTV"
+        android:background="@color/colorPrimaryDark"
+        android:textAlignment="center"
+        android:textColor="#FFF"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true" />
 </RelativeLayout>

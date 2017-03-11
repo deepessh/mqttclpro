@@ -12,6 +12,8 @@ import android.widget.ImageView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
+import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
+
 /**
  * Created by deepesh on 29/3/16.
  */
@@ -46,8 +48,17 @@ public class MessagesListAdapter extends SimpleCursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         super.bindView(view, context, cursor);
-        if(cursor.getInt(cursor.getColumnIndexOrThrow("status")) == 0){
-            view.setBackgroundColor(Color.argb(77,255,0,0));
+        if("0".equals(((TextView) view.findViewById(R.id.mstatustv)).getText().toString())){
+            view.setBackgroundColor(context.getResources().getColor(R.color.unpubmessage));
+        }
+        else{
+            view.setBackgroundColor(Color.rgb(255,255,255));
+        }
+        if(cursor.getInt(cursor.getColumnIndexOrThrow("retained")) == 0){
+            ((TextView)view.findViewById(R.id.mretained_tv)).setText("Not Retained");
+        }
+        else{
+            ((TextView)view.findViewById(R.id.mretained_tv)).setText("Retained");
         }
     }
 }
