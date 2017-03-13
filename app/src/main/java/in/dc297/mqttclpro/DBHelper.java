@@ -156,7 +156,6 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         finally {
             db.endTransaction();
-            db.close();
         }
     }
 

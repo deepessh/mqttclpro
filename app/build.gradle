@@ -8,8 +8,8 @@ android {
         applicationId "in.dc297.mqttclpro"
         minSdkVersion 19
         targetSdkVersion 23
-        versionCode 9
-        versionName "1.7.1"
+        versionCode 10
+        versionName "1.7.2"
     }
     buildTypes {
         release {
