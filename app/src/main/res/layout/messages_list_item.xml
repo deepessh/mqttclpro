@@ -18,8 +18,9 @@
         android:layout_height="wrap_content"
         android:id="@+id/mstatustv"
         android:text="1"
-        android:textColor="#000"
+        android:textColor="#FFF"
         android:layout_alignParentEnd="true"
+        android:visibility="gone"
         />
     <TextView
         android:layout_width="wrap_content"
@@ -36,16 +37,16 @@
         android:text="Retained"
         android:layout_alignBaseline="@+id/mtimestamp_tv"
         android:layout_alignBottom="@+id/mtimestamp_tv"
-        android:layout_centerHorizontal="true"
         android:id="@+id/mretained_tv"
-        android:textColor="#000"/>
+        android:textColor="#000"
+        android:layout_below="@id/mtopic_tv"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="YESTERDAY"
         android:id="@+id/mtimestamp_tv"
-        android:layout_below="@+id/mmessage_tv"
+        android:layout_below="@+id/mtopic_tv"
         android:layout_alignParentEnd="true"
         android:textColor="#000"/>
 
