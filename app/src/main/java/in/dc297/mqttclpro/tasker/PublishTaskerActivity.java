@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -43,6 +44,11 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
         DBHelper dbHelper = new DBHelper(this.getApplicationContext());
 
         Cursor topicCursor = dbHelper.getTopics(0);
+        if(topicCursor.getCount()==0){
+            Toast.makeText(getApplicationContext(),"Please subscribe to at least 1 topic before configuring tasker event.",Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
         String[] topics = new String[topicCursor.getCount()];
         topicCursor.moveToFirst();
         int i=0;
@@ -78,24 +84,25 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
     {
         if (!isCanceled())
         {
-            final String topic = ((Spinner) findViewById(R.id.editText)).getSelectedItem().toString();
-            final String message = ((EditText) findViewById(R.id.editText2)).getText().toString();
+            Spinner topicSpinner = (Spinner) findViewById(R.id.editText);
+            if(topicSpinner!=null && topicSpinner.getSelectedItem()!=null) {
+                final String topic = topicSpinner.getSelectedItem().toString();
+                final String message = ((EditText) findViewById(R.id.editText2)).getText().toString();
 
-            if (message.length() > 0 && topic.length() > 0)
-            {
-                final Intent resultIntent = new Intent();
+                if (message.length() > 0 && topic.length() > 0) {
+                    final Intent resultIntent = new Intent();
 
 
-
-                resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC, topic);
-                resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE, message);
+                    resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC, topic);
+                    resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE, message);
                 /*
                  * The blurb is concise status text to be displayed in the host's UI.
                  */
-                final String blurb = generateBlurb(getApplicationContext(), topic+" : "+message);
-                resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_STRING_BLURB, blurb);
+                    final String blurb = generateBlurb(getApplicationContext(), topic + " : " + message);
+                    resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_STRING_BLURB, blurb);
 
-                setResult(RESULT_OK, resultIntent)  ;
+                    setResult(RESULT_OK, resultIntent);
+                }
             }
         }
 
