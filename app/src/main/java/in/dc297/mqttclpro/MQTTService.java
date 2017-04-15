@@ -250,7 +250,7 @@ public class MQTTService extends Service implements MqttCallback
 
     // defaults - this sample uses very basic defaults for it's interactions
     //   with message brokers
-    private int             brokerPortNumber     = 0;
+    private int             brokerPortNumber     = 1883;
     private String          userName             = "";
     private String          password             = "";
     private boolean         ssl                  = false;
@@ -281,6 +281,8 @@ public class MQTTService extends Service implements MqttCallback
     //     you want to use a keep alive value that is less than the period of
     //     time after which a network operator will kill an idle connection
     private short           keepAliveSeconds     = 20 * 60;
+
+    private short           retryInterval        =  2 * 60;
 
 
     // This is how the Android client app will identify itself to the
@@ -754,6 +756,7 @@ public class MQTTService extends Service implements MqttCallback
         ssl = settings.getBoolean("ssl_switch",false);
         ws  = settings.getBoolean("ws_switch",false);
         keepAliveSeconds = Short.parseShort(settings.getString("keepalive","1200"));
+        retryInterval = Short.parseShort(settings.getString("retry_interval","100"));
         cleanSession = settings.getBoolean("cleansession",false);
         String genClientId = generateClientId();
         mqttClientId = settings.getString("clientid",genClientId);
@@ -838,8 +841,8 @@ public class MQTTService extends Service implements MqttCallback
         //  shortly before the keep alive period expires
         // it means we're pinging slightly more frequently than necessary
         Calendar wakeUpTime = Calendar.getInstance();
-        wakeUpTime.add(Calendar.SECOND, keepAliveSeconds);
-        broadcastServiceStatus("Failed to connect. Next connect scheduled at "+wakeUpTime.getTime());
+        wakeUpTime.add(Calendar.SECOND, retryInterval);
+        broadcastServiceStatus("Failed to connect to "+brokerHostName+":"+brokerPortNumber+". Next connect scheduled at "+wakeUpTime.getTime());
         Log.i(LOG_TAG,"Scheduling next connect at "+wakeUpTime.getTime());
 
         AlarmManager aMgr = (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -1140,7 +1143,7 @@ public class MQTTService extends Service implements MqttCallback
                 }
                 broadcastServiceStatus("Connecting...");
                 if(ssl){
-                    connOpts.setSocketFactory(SSLUtil.getSocketFactory("/mnt/sdcard/Mosquitto/ca.crt",null,null,null));
+                    //connOpts.setSocketFactory(SSLUtil.getSocketFactory("/mnt/sdcard/Mosquitto/ca.crt",null,null,null));
                 }
                 mqttClient.connect(connOpts);
                 scheduleNextPing();

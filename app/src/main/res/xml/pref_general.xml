@@ -64,6 +64,16 @@
         android:title="@string/pref_title_keepalive" />
     <EditTextPreference
         android:capitalize="words"
+        android:defaultValue="@string/pref_default_retry_interval"
+        android:inputType="number"
+        android:key="retry_interval"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_title_retry_interval"
+        android:summary="@string/pref_title_retry_summary"/>
+    <EditTextPreference
+        android:capitalize="words"
         android:defaultValue="@string/pref_default_url"
         android:inputType="textCapWords"
         android:key="clientid"

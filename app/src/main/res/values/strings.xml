@@ -119,4 +119,7 @@
     <string name="twofortyfouram_locale_breadcrumb_separator"><![CDATA[\\u0020>\\u0020]]></string>
     <string name="title_activity_donation">DonationActivity</string>
     <string name="section_format">Hello World from section: %1$d</string>
+    <string name="pref_default_retry_interval">100</string>
+    <string name="pref_title_retry_interval">Retry Interval (seconds)</string>
+    <string name="pref_title_retry_summary">If the connection to the broker is lost, this value will be used as the interval between connection retries.</string>
 </resources>
