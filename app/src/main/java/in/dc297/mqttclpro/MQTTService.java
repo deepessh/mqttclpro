@@ -250,7 +250,7 @@ public class MQTTService extends Service implements MqttCallback
 
     // defaults - this sample uses very basic defaults for it's interactions
     //   with message brokers
-    private int             brokerPortNumber     = 1883;
+    private int             brokerPortNumber     = 0;
     private String          userName             = "";
     private String          password             = "";
     private boolean         ssl                  = false;
@@ -743,7 +743,12 @@ public class MQTTService extends Service implements MqttCallback
         settings = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         settings.registerOnSharedPreferenceChangeListener(listener);
         brokerHostName = settings.getString("url", "");
-        brokerPortNumber = Integer.parseInt(settings.getString("port", "1883"));
+        try {
+            brokerPortNumber = Integer.parseInt(settings.getString("port", "1883"));
+        }
+        catch(NumberFormatException nfe){
+            nfe.printStackTrace();
+        }
         userName = settings.getString("user", "");
         password = settings.getString("password","");
         ssl = settings.getBoolean("ssl_switch",false);
@@ -1129,6 +1134,9 @@ public class MQTTService extends Service implements MqttCallback
                     broadcastServiceStatus("Please define broker details");
                     connectionStatus = MQTTConnectionStatus.FIRST_RUN;
                     return true;
+                }
+                if(brokerPortNumber==0){
+
                 }
                 broadcastServiceStatus("Connecting...");
                 if(ssl){
