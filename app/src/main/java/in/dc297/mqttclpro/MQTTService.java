@@ -317,15 +317,7 @@ public class MQTTService extends Service implements MqttCallback
             // Implementation
             //if(prefs.)
             if(prefs_key.contains(key)) {
-                if(disconnectTask==null){
-                    disconnectTask = new DisconnectAsyncTask();
-                    disconnectTask.execute();
-                }
-                else{
-                    disconnectTask.cancel(true);
-                    disconnectTask = new DisconnectAsyncTask();
-                    disconnectTask.execute();
-                }
+                disconnectFromBroker();
                 if(connectTask!=null){
                     connectTask.cancel(true);
                     connectTask=null;
@@ -937,22 +929,14 @@ public class MQTTService extends Service implements MqttCallback
             Log.e(LOG_TAG, "unregister failed", eee);
         }
 
-        try
-        {
-            if (mqttClient != null)
-            {
-                mqttClient.disconnect();
-            }
+        if(disconnectTask==null){
+            disconnectTask = new DisconnectAsyncTask();
+            disconnectTask.execute();
         }
-        catch (MqttPersistenceException e)
-        {
-            Log.e(LOG_TAG, "disconnect failed - persistence exception", e);
-        } catch (MqttException e) {
-            Log.e(LOG_TAG, "disconnect failed - mqtt exception", e);
-            //e.printStackTrace();
-        } finally
-        {
-            mqttClient = null;
+        else{
+            disconnectTask.cancel(true);
+            disconnectTask = new DisconnectAsyncTask();
+            disconnectTask.execute();
         }
 
         // we can now remove the ongoing notification that warns users that
