@@ -1,8 +1,20 @@
 <resources>
     <string name="app_name">MQTT Client</string>
     <string name="action_settings">Settings</string>
+    <string name="action_donate">Donate</string>
     <string name="action_delete">Delete</string>
     <string name="title_activity_settings">Settings</string>
+
+
+    <string-array name="donation_google_catalog_values">
+        <item>1 USD</item>
+        <item>3 USD</item>
+        <item>5 USD</item>
+        <item>13 USD</item>
+        <item>20 USD</item>
+    </string-array>
+
+    <string name="donation_paypal_item">Donation</string>
 
     <!-- Strings related to Settings -->
 
@@ -71,9 +83,12 @@
 
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="pref_description_ssl">Use SSL for connection</string>
+    <string name="pref_description_ws">Use Websockets for connection</string>
     <string name="pref_title_cleansession">Clean Session</string>
     <string name="pref_title_ssl">Enable SSL</string>
+    <string name="pref_title_ws">Use Websockets</string>
     <string name="pref_title_url">URL</string>
+    <string name="pref_title_clientid">Client ID</string>
     <string name="pref_default_url"></string>
     <string name="pref_title_retained">Retained</string>
     <string name="pref_title_topic">Topic</string>
@@ -102,4 +117,9 @@
     <string name="twofortyfouram_locale_menu_help">Help</string>
     <string name="twofortyfouram_locale_breadcrumb_format">%1$s%2$s%3$s</string>
     <string name="twofortyfouram_locale_breadcrumb_separator"><![CDATA[\\u0020>\\u0020]]></string>
+    <string name="title_activity_donation">DonationActivity</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="pref_default_retry_interval">100</string>
+    <string name="pref_title_retry_interval">Retry Interval (seconds)</string>
+    <string name="pref_title_retry_summary">If the connection to the broker is lost, this value will be used as the interval between connection retries.</string>
 </resources>

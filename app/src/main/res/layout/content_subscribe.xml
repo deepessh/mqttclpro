@@ -27,13 +27,11 @@
         android:layout_height="wrap_content"
         android:text="Waiting for connection"
         android:id="@+id/statusTV"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignEnd="@+id/subsctibeTopicListView"
-        android:layout_alignParentEnd="false"
         android:background="@color/colorPrimaryDark"
         android:textAlignment="center"
-        android:textColor="#FFF"/>
+        android:textColor="#FFF"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

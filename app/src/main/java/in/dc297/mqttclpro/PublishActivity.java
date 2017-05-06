@@ -92,7 +92,7 @@ public class PublishActivity extends AppCompatActivity {
                                     Toast.makeText(getApplicationContext(),"Invalid topic value",Toast.LENGTH_SHORT).show();
                                     return;
                                 }
-                                if(message==null || message.equals("")){
+                                if(message==null){
                                     Toast.makeText(getApplicationContext(),"Invalid message value",Toast.LENGTH_SHORT).show();
                                     return;
                                 }
@@ -112,7 +112,7 @@ public class PublishActivity extends AppCompatActivity {
                                     return;
                                 }
                                 db.addTopic(topic,1,Integer.parseInt(qos));
-                                long message_id = db.addMessage(topic,message,1,Integer.parseInt(qos));
+                                long message_id = db.addMessage(topic,message,1,Integer.parseInt(qos),retained);
 
                                 mqttService.publishMessage(topic, message, qos,message_id,retained);
                                 pubtopsAdapter.swapCursor(db.getTopics(1));

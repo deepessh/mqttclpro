@@ -227,6 +227,11 @@ public class SubscribeActivity extends AppCompatActivity {
             startActivity(settingsIntent);
             return true;
         }
+        if(id == R.id.action_donate){
+            Intent donateIntent = new Intent(this,DonationActivity.class);
+            startActivity(donateIntent);
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }

@@ -2,6 +2,7 @@ package in.dc297.mqttclpro;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.SQLException;
@@ -15,29 +16,32 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
+import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
+
 /**
  * Created by deepesh on 28/3/16.
  */
 public class DBHelper extends SQLiteOpenHelper {
+    private static final int DB_VERSION = 8;
 
     public DBHelper(Context context) {
-        super(context, context.getPackageName(), null, 1);
+        super(context, context.getPackageName(), null, DB_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
 
         db.execSQL("CREATE TABLE IF NOT EXISTS topics(_id INTEGER PRIMARY KEY AUTOINCREMENT,topic TEXT,show_noti INTEGER DEFAULT 0,topic_type INTEGER DEFAULT 0, qos INTEGER DEFAULT 0)");
-        db.execSQL("CREATE TABLE IF NOT EXISTS messages(_id INTEGER PRIMARY KEY AUTOINCREMENT,topic_id INTEGER,message VARCHAR,timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,read INTEGER DEFAULT 0,topic TEXT,display_topic TEXT,status INTEGER DEFAULT 1,qos INTEGER DEFAULT 0)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS messages(_id INTEGER PRIMARY KEY AUTOINCREMENT,topic_id INTEGER,message VARCHAR,timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,read INTEGER DEFAULT 0,topic TEXT,display_topic TEXT,status INTEGER DEFAULT 1,qos INTEGER DEFAULT 0, retained INTEGER default 0)");
 
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
-        db.execSQL("DROP TABLE IF EXISTS topics");
-        db.execSQL("DROP TABLE IF EXISTS messages");
-        onCreate(db);
+        Log.i(LOG_TAG,"New version : "+String.valueOf(newVersion) + "Old version : "+String.valueOf(oldVersion));
+        if(oldVersion<8) {
+            db.execSQL("ALTER TABLE messages ADD COLUMN retained INTEGER default 0");
+        }
 
     }
 
@@ -89,9 +93,9 @@ public class DBHelper extends SQLiteOpenHelper {
         //return topics;
     }
 
-    public long addMessage(String topic,String message,int topic_type,int qos){
+    public long addMessage(String topic,String message,int topic_type,int qos,boolean retained){
         if(topic_type==0){
-            return addMessageReceived(topic,message,qos);
+            return addMessageReceived(topic,message,qos,retained?1:0);
         }
         SQLiteDatabase db = getWritableDatabase();
         String topic_esc = DatabaseUtils.sqlEscapeString(topic);
@@ -106,6 +110,7 @@ public class DBHelper extends SQLiteOpenHelper {
             values.put("read", topic_type);
             values.put("qos",qos);
             values.put("display_topic",topic);
+            values.put("retained",retained?1:0);
             if(topic_type==1) values.put("status",0);
             Log.i("db", "putting message");
             long mid = db.insertOrThrow("messages",null,values);
@@ -118,7 +123,7 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
-    public long addMessageReceived(String topic,String message, int qos){
+    public long addMessageReceived(String topic,String message, int qos,int retained){
         SQLiteDatabase db = getWritableDatabase();
         Util myUtil = new Util();
         try {
@@ -136,6 +141,7 @@ public class DBHelper extends SQLiteOpenHelper {
                     values.put("read", 0);
                     values.put("qos",qos);
                     values.put("display_topic",topic);
+                    values.put("retained",retained);
                     Log.i("db", "putting received message for topic"+topicInDb);
                     db.insertOrThrow("messages",null,values);
                 }
@@ -157,7 +163,7 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         topic = DatabaseUtils.sqlEscapeString(topic);
         try{
-            Cursor messagesCursor = db.rawQuery("SELECT _id,message,status,timestamp,display_topic from messages where topic_id = (SELECT _id from topics where topic="+topic+" and topic_type="+topic_type+") ORDER BY timestamp DESC",null);
+            Cursor messagesCursor = db.rawQuery("SELECT _id,message,status,timestamp,display_topic,qos,retained from messages where topic_id = (SELECT _id from topics where topic="+topic+" and topic_type="+topic_type+") ORDER BY timestamp DESC",null);
             return messagesCursor;
         }
         catch(SQLException se){
