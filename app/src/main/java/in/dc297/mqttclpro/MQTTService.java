@@ -225,7 +225,8 @@ public class MQTTService extends Service implements MqttCallback
         NOTCONNECTED_DATADISABLED,          // can't connect because the user
         //     has disabled data access
         NOTCONNECTED_UNKNOWNREASON,          // failed to connect for some reason
-        FIRST_RUN
+        FIRST_RUN,
+        INVALID_HOST
     }
 
     // MQTT constants
@@ -700,6 +701,9 @@ public class MQTTService extends Service implements MqttCallback
             case FIRST_RUN:
                 status = "Please define broker details";
                 break;
+            case INVALID_HOST:
+                status = "Invalid Host Name";
+                break;
         }
 
         //
@@ -747,8 +751,13 @@ public class MQTTService extends Service implements MqttCallback
         password = settings.getString("password","");
         ssl = settings.getBoolean("ssl_switch",false);
         ws  = settings.getBoolean("ws_switch",false);
-        keepAliveSeconds = Short.parseShort(settings.getString("keepalive","1200"));
-        retryInterval = Short.parseShort(settings.getString("retry_interval","100"));
+        try {
+            keepAliveSeconds = Short.parseShort(settings.getString("keepalive", "1200"));
+            retryInterval = Short.parseShort(settings.getString("retry_interval", "100"));
+        }
+        catch(NumberFormatException nfe){
+            nfe.printStackTrace();
+        }
         cleanSession = settings.getBoolean("cleansession",false);
         String genClientId = generateClientId();
         mqttClientId = settings.getString("clientid",genClientId);
@@ -1081,11 +1090,13 @@ public class MQTTService extends Service implements MqttCallback
     private boolean isOnline()
     {
         ConnectivityManager cm = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
-        if(cm.getActiveNetworkInfo() != null &&
-                cm.getActiveNetworkInfo().isAvailable() &&
-                cm.getActiveNetworkInfo().isConnected())
-        {
-            return true;
+        if(cm!=null) {
+            if (cm.getActiveNetworkInfo() != null) {
+                if (cm.getActiveNetworkInfo().isAvailable() &&
+                        cm.getActiveNetworkInfo().isConnected()) {
+                    return true;
+                }
+            }
         }
 
         return false;
@@ -1120,6 +1131,11 @@ public class MQTTService extends Service implements MqttCallback
                 if("".equals(brokerHostName)){
                     broadcastServiceStatus("Please define broker details");
                     connectionStatus = MQTTConnectionStatus.FIRST_RUN;
+                    return true;
+                }
+                else if(!Util.isHostValid(brokerHostName)){
+                    broadcastServiceStatus("Invalid Host name");
+                    connectionStatus = MQTTConnectionStatus.INVALID_HOST;
                     return true;
                 }
                 if(brokerPortNumber==0){

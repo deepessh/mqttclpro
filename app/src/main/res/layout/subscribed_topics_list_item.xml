@@ -9,12 +9,12 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="1234567890123456789"
         android:id="@+id/topic_tv"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
         android:ellipsize="end"
         android:maxEms="9"
         android:singleLine="true"
-        android:textColor="#000"/>
+        android:textColor="#000"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
 
     <TextView
         android:layout_width="wrap_content"

@@ -1,5 +1,7 @@
 package in.dc297.mqttclpro;
 
+import java.util.regex.Pattern;
+
 /**
  * Created by Deepesh on 11/1/2016.
  */
@@ -69,6 +71,21 @@ public class Util {
             }
         }
         if(multilevel_wildcard == false && (tpos < tlen || spos < slen)){
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean isHostValid(String host){
+        if(host==null) return false;
+        if(host.length()==0) return false;
+        if(host.length()>255) return false;
+
+        String IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
+        String HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
+
+        if(!host.matches(IP_ADDRESS) && ! host.matches(HOSTNAME)){
             return false;
         }
 
