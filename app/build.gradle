@@ -6,8 +6,8 @@ android {
 
     defaultConfig {
         applicationId "in.dc297.mqttclpro"
-        minSdkVersion 19
-        targetSdkVersion 23
+        minSdkVersion 17
+        targetSdkVersion 25
         versionCode 17
         versionName "2.2.1"
     }

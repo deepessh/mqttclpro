@@ -1195,7 +1195,7 @@ public class MQTTService extends Service implements MqttCallback
                 }else {
                     connectionStatus = MQTTConnectionStatus.NOTCONNECTED_UNKNOWNREASON;
 
-                    Log.e(LOG_TAG, "unable to connect" + brokerHostName + ":" + brokerPortNumber + " exception is" + e.getReasonCode(), e);
+                    Log.e(LOG_TAG, "unable to connect" + brokerHostName + ":" + brokerPortNumber + " exception is " + e.getMessage(), e);
                     //
                     // inform the app that we failed to connect so that it can update
                     //  the UI accordingly
