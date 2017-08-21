@@ -19,12 +19,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -32,10 +32,6 @@ import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.provider.Settings.Secure;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -48,13 +44,9 @@ import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
-import javax.net.ssl.SSLSocketFactory;
-
-import in.dc297.mqttclpro.SSL.SSLUtil;
 import in.dc297.mqttclpro.tasker.Constants;
 import in.dc297.mqttclpro.tasker.PluginBundleManager;
 import in.dc297.mqttclpro.tasker.PublishTaskerActivity;
@@ -311,7 +303,7 @@ public class MQTTService extends Service implements MqttCallback
     private FireTaskerReceiver taskerFireReceiver;
 
     private ArrayList<String> prefs_key = new ArrayList<>(Arrays.asList("url","port","keepalive","user",
-            "password","cleansession","ssl_switch", "lastwill_topic", "lastwill_message", "lastwill_qos", "lastwill_retained","clientid","ws_switch"));
+            "password","cleansession","ssl_switch", "lastwill_topic", "lastwill_message", "lastwill_qos", "lastwill_retained","clientid","ws_switch","retry_interval"));
     //listener for shared preferences to reconnect if user changes server settings
     SharedPreferences.OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
@@ -847,9 +839,16 @@ public class MQTTService extends Service implements MqttCallback
         Log.i(LOG_TAG,"Scheduling next connect at "+wakeUpTime.getTime());
 
         AlarmManager aMgr = (AlarmManager) getSystemService(ALARM_SERVICE);
-        aMgr.set(AlarmManager.RTC_WAKEUP,
-                wakeUpTime.getTimeInMillis(),
-                pendingIntent);
+        if(Build.VERSION.SDK_INT>Build.VERSION_CODES.KITKAT) {
+            aMgr.setExact(AlarmManager.RTC_WAKEUP,
+                    wakeUpTime.getTimeInMillis(),
+                    pendingIntent);
+        }
+        else{
+            aMgr.set(AlarmManager.RTC_WAKEUP,
+                    wakeUpTime.getTimeInMillis(),
+                    pendingIntent);
+        }
     }
 
     private void scheduleNextPing()
@@ -1111,6 +1110,7 @@ public class MQTTService extends Service implements MqttCallback
                 MqttConnectOptions connOpts = new MqttConnectOptions();
                 connOpts.setCleanSession(cleanSession);
                 connOpts.setKeepAliveInterval(keepAliveSeconds);
+
                 if(userName!=null & !userName.equals("")){
                     connOpts.setUserName(userName);
                     connOpts.setPassword(password != null ? password.toCharArray() : "".toCharArray());
@@ -1142,6 +1142,7 @@ public class MQTTService extends Service implements MqttCallback
 
                 }
                 broadcastServiceStatus("Connecting...");
+                Log.i(LOG_TAG,"Connecting...");
                 if(ssl){
                     //connOpts.setSocketFactory(SSLUtil.getSocketFactory("/mnt/sdcard/Mosquitto/ca.crt",null,null,null));
                 }
@@ -1406,6 +1407,7 @@ public class MQTTService extends Service implements MqttCallback
 
             try
             {
+                Log.i(LOG_TAG,"Re-Connecting...");
                 if(mqttClient==null){
                     defineConnectionToBroker();
                 }
