@@ -95,7 +95,7 @@ public class ActionEditActivity extends AbstractPluginActivity {
                 return;
             }
 
-            if (message.length() > 0 && topic.length() > 0)
+            if (topic.length() > 0)
             {
                 final Intent resultIntent = new Intent();
 
