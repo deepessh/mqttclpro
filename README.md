@@ -32,4 +32,5 @@ Feedback is highly appreciated!
 
 If you found the application helpful. Please consider buying me a beer.
 
+BTC Address : 1sPeSrjGYt6AtiYPW6YFbKxWYBzc5DY2b
 Paypal Account email : deepeshch2k9@gmail.com
