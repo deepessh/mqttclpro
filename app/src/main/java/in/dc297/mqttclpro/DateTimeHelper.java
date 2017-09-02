@@ -13,7 +13,6 @@ import java.util.Locale;
  */
 public class DateTimeHelper {
     public String formatTime(String paramString) {
-        String formattedTime = "";
         return paramString!=null ? paramString.substring(0,10) : null;
     }
 

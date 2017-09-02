@@ -110,7 +110,7 @@
     <string name="title_activity_action_edit">Publish MQTT Message</string>
     <string name="topic">Topic</string>
     <string name="message">Message</string>
-    <string name="message_tasker_var">Message tasker variable name</string>
+    <string name="message_tasker_var">varmqtt</string>
     <string name="plugin_name">MQTT Publish</string>
     <string name="twofortyfouram_locale_menu_dontsave">Cancel</string>
     <string name="twofortyfouram_locale_menu_save">Save</string>

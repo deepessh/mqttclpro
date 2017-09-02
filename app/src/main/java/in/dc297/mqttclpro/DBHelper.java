@@ -163,7 +163,7 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         topic = DatabaseUtils.sqlEscapeString(topic);
         try{
-            Cursor messagesCursor = db.rawQuery("SELECT _id,message,status,timestamp,display_topic,qos,retained from messages where topic_id = (SELECT _id from topics where topic="+topic+" and topic_type="+topic_type+") ORDER BY timestamp DESC",null);
+            Cursor messagesCursor = db.rawQuery("SELECT _id,message,status,datetime(timestamp,'localtime') as timestamp,display_topic,qos,retained from messages where topic_id = (SELECT _id from topics where topic="+topic+" and topic_type="+topic_type+") ORDER BY timestamp DESC",null);
             return messagesCursor;
         }
         catch(SQLException se){

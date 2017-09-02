@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Locale;
-import java.util.jar.Manifest;
+
 
 import android.app.AlarmManager;
 import android.app.NotificationManager;
@@ -24,8 +24,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
@@ -260,6 +261,30 @@ public class MQTTService extends Service implements MqttCallback
     private DBHelper db = null;
 
     private SharedPreferences settings = null;
+    private Handler reconnectHandler;
+    private HandlerThread reconnectHandlerThread;
+    private Runnable reconnectTask = new Runnable() {
+        @Override
+        public void run() {
+            try
+            {
+                Log.i(LOG_TAG,"Re-Connecting...");
+                if(mqttClient==null){
+                    defineConnectionToBroker();
+                }
+                if(!mqttClient.isConnected()){
+                    handleStart();
+                }
+            }
+            catch (Exception e)
+            {
+                broadcastServiceStatus("Unable to connect");
+                e.printStackTrace();
+                Log.e(LOG_TAG,"Unable to reconnect",e);
+                scheduleNextConnect();
+            }
+        }
+    };
     //  how often should the app ping the server to keep the connection alive?
     //
     //   too frequently - and you waste battery life
@@ -284,7 +309,6 @@ public class MQTTService extends Service implements MqttCallback
     //  connect to the same broker using the same client ID.
     private String          mqttClientId = null;
 
-    private Reconnector reconnector;
 
 
 
@@ -348,9 +372,6 @@ public class MQTTService extends Service implements MqttCallback
         //registerReceiver(dataEnabledReceiver,
 //                new IntentFilter(ConnectivityManager.ACTION_BACKGROUND_DATA_SETTING_CHANGED));
 
-        reconnector = new Reconnector();
-        registerReceiver(reconnector,new IntentFilter(MQTT_RECONNECT_ACTION));
-
         taskerFireReceiver = new FireTaskerReceiver();
 
         registerReceiver(taskerFireReceiver,new IntentFilter(MQTT_PUBLISH));
@@ -360,6 +381,9 @@ public class MQTTService extends Service implements MqttCallback
 
         // define the connection to the broker
         defineConnectionToBroker();
+        reconnectHandlerThread = new HandlerThread("inference");
+        reconnectHandlerThread.start();
+        reconnectHandler = new Handler(reconnectHandlerThread.getLooper());
     }
 
 
@@ -511,11 +535,6 @@ public class MQTTService extends Service implements MqttCallback
         //    unregisterReceiver(dataEnabledReceiver);
         //    dataEnabledReceiver = null;
         //}
-
-        if(reconnector!=null){
-            unregisterReceiver(reconnector);
-            reconnector = null;
-        }
 
         if(taskerFireReceiver!=null){
             unregisterReceiver(taskerFireReceiver);
@@ -826,17 +845,13 @@ public class MQTTService extends Service implements MqttCallback
     }
     private void scheduleNextConnect()
     {
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,
+        /*PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,
                 new Intent(MQTT_RECONNECT_ACTION),
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         // in case it takes us a little while to do this, we try and do it
         //  shortly before the keep alive period expires
         // it means we're pinging slightly more frequently than necessary
-        Calendar wakeUpTime = Calendar.getInstance();
-        wakeUpTime.add(Calendar.SECOND, retryInterval);
-        broadcastServiceStatus("Failed to connect to "+brokerHostName+":"+brokerPortNumber+". Next connect scheduled at "+wakeUpTime.getTime());
-        Log.i(LOG_TAG,"Scheduling next connect at "+wakeUpTime.getTime());
 
         AlarmManager aMgr = (AlarmManager) getSystemService(ALARM_SERVICE);
         if(Build.VERSION.SDK_INT>Build.VERSION_CODES.KITKAT) {
@@ -848,8 +863,14 @@ public class MQTTService extends Service implements MqttCallback
             aMgr.set(AlarmManager.RTC_WAKEUP,
                     wakeUpTime.getTimeInMillis(),
                     pendingIntent);
-        }
+        }*/
+        Calendar wakeUpTime = Calendar.getInstance();
+        wakeUpTime.add(Calendar.SECOND, retryInterval);
+        broadcastServiceStatus("Failed to connect to "+brokerHostName+":"+brokerPortNumber+". Next connect scheduled at "+wakeUpTime.getTime());
+        Log.i(LOG_TAG,"Scheduling next connect at "+wakeUpTime.getTime());
+        reconnectHandler.postDelayed(reconnectTask, retryInterval*1000);
     }
+
 
     private void scheduleNextPing()
     {
@@ -918,10 +939,6 @@ public class MQTTService extends Service implements MqttCallback
         //  cancelled - we don't need to be told when we're connected now
         try
         {
-            if(reconnector!=null){
-                unregisterReceiver(reconnector);
-                reconnector = null;
-            }
             if(taskerFireReceiver!=null){
                 unregisterReceiver(taskerFireReceiver);
                 taskerFireReceiver = null;
@@ -1391,7 +1408,7 @@ public class MQTTService extends Service implements MqttCallback
         }
     }
 
-    public class Reconnector extends BroadcastReceiver
+    /*public class Reconnector extends BroadcastReceiver
     {
         @Override
         public void onReceive(Context context, Intent intent)
@@ -1423,7 +1440,7 @@ public class MQTTService extends Service implements MqttCallback
                 scheduleNextConnect();
             }
         }
-    }
+    }*/
     public final class FireTaskerReceiver extends BroadcastReceiver
     {
         public FireTaskerReceiver() {
