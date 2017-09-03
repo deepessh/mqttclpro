@@ -23,6 +23,8 @@ import net.dinglisch.android.tasker.TaskerPlugin;
 
 import java.util.Locale;
 
+import in.dc297.mqttclpro.Util;
+
 public final class QueryReceiver extends BroadcastReceiver
 {
 
@@ -64,7 +66,7 @@ public final class QueryReceiver extends BroadcastReceiver
         if(publishedBundle!=null) {
             publishedTopic = publishedBundle.getString(PluginBundleManager.BUNDLE_EXTRA_STRING_TOPIC);
             publishedMessage = publishedBundle.getString(PluginBundleManager.BUNDLE_EXTRA_STRING_MESSAGE);
-            if(!publishedTopic.equals(topic)){
+            if(!Util.mosquitto_topic_matches_sub(topic, publishedTopic)){
                 setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_UNSATISFIED);
                 return;
             }

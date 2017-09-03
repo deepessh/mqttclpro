@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 public class Util {
     /* Does a topic match a subscription? */
-    public boolean mosquitto_topic_matches_sub(String sub, String topic)
+    public static boolean mosquitto_topic_matches_sub(String sub, String topic)
     {
         int slen, tlen;
         int spos, tpos;
