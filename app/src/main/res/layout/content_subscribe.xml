@@ -41,12 +41,13 @@
         android:id="@+id/linearLayout"
         >
         <EditText
+            android:id="@+id/subscribeTopicEditText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/subscribeTopicEditText"
             android:layout_alignEnd="@+id/subsctibeTopicListView"
+            android:layout_weight="1.00"
             android:hint="Topic"
-            android:layout_weight="1"
+            android:maxEms="1"
             android:singleLine="true" />
         <TextView
             android:layout_width="wrap_content"

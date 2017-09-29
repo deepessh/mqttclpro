@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MessageActivity extends AppCompatActivity {
@@ -24,6 +25,7 @@ public class MessageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_message);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
 
         db = new DBHelper(getApplicationContext());
 
@@ -43,7 +45,7 @@ public class MessageActivity extends AppCompatActivity {
             Toast.makeText(this,"No messages received",Toast.LENGTH_SHORT).show();
             finish();
         }
-        setTitle("Received messages for "+topic);
+        ((TextView)toolbar.findViewById(R.id.toolbar_title)).setText("Received messages for "+topic);
         messagesLV = (ListView) findViewById(R.id.messages_lv);
         db.setMessagesRead(topic,0);
         String[] from = new String[] { "message", "timestamp","display_topic"};

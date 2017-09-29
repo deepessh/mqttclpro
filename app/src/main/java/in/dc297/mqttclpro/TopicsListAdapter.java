@@ -1,6 +1,7 @@
 package in.dc297.mqttclpro;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -66,6 +67,12 @@ public class TopicsListAdapter extends SimpleCursorAdapter {
                 }
                 if(v.getId()==R.id.timestamp_tv){
                     v.setText(dth.formatTime(cursor.getString(cursor.getColumnIndexOrThrow("timest"))));
+                }
+
+                if(v.getId()==R.id.topic_tv){
+                    if(context.getResources().getConfiguration().orientation== Configuration.ORIENTATION_LANDSCAPE) v.setMaxEms(20);
+                    else v.setMaxEms(9);
+                    v.setSelected(true);
                 }
             }
         }
