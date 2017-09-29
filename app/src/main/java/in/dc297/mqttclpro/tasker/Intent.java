@@ -184,6 +184,7 @@ public final class Intent
      */
     public static final String EXTRA_TOPIC = "in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC"; //$NON-NLS-1$
     public static final String EXTRA_MESSAGE = "in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE"; //$NON-NLS-1$
+    public static final String EXTRA_TOPIC_VAR = "in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR"; //$NON-NLS-1$
     public static final String EXTRA_QOS = "in.dc297.mqttclpro.tasker.Intent.EXTRA_QOS"; //$NON-NLS-1$
     public static final String EXTRA_RETAINED = "in.dc297.mqttclpro.tasker.Intent.EXTRA_RETAINED"; //$NON-NLS-1$
     public static final String EXTRA_BUNDLE = "in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE";

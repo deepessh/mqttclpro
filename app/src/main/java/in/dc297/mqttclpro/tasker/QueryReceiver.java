@@ -48,6 +48,7 @@ public final class QueryReceiver extends BroadcastReceiver
 
         final String topic = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
         final String message = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
+        final String topicVar = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR);
 
         int messageID = TaskerPlugin.Event.retrievePassThroughMessageID(intent);
         if ( messageID == -1 ) {
@@ -90,6 +91,7 @@ public final class QueryReceiver extends BroadcastReceiver
         if ( TaskerPlugin.Setting.hostSupportsVariableReturn( intent.getExtras() ) ) {
             Bundle vars = new Bundle();
             vars.putString( "%"+message, publishedMessage );
+            vars.putString("%"+topicVar, publishedTopic);
             Log.i("Query success","Returning var name "+message+" with value "+publishedMessage);
             TaskerPlugin.addVariableBundle( getResultExtras( true ), vars );
         }

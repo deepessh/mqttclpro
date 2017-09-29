@@ -32,6 +32,7 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
 
         final String topic = getIntent().getStringExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
         final String message = getIntent().getStringExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
+        final String topicVar = getIntent().getStringExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR);
         /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,11 +71,14 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
         topicSpinner.setAdapter(dataAdapter);
         if (null == savedInstanceState)
         {
-            if(message!=null && message!="") {
+            if(message!=null && !"".equals(message)) {
                 ((EditText) findViewById(R.id.editText2)).setText(message);
             }
-            if(topic!=null && topic!="") {
+            if(topic!=null && !"".equals(topic)) {
                 topicSpinner.setSelection(selIndex);
+            }
+            if(topicVar!=null && !"".equals(topicVar)){
+                ((EditText) findViewById(R.id.mqttTopicVar)).setText(topicVar);
             }
         }
     }
@@ -88,13 +92,15 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
             if(topicSpinner!=null && topicSpinner.getSelectedItem()!=null) {
                 final String topic = topicSpinner.getSelectedItem().toString();
                 final String message = ((EditText) findViewById(R.id.editText2)).getText().toString();
+                final String topicVar =  ((EditText) findViewById(R.id.mqttTopicVar)).getText().toString();
 
-                if (message.length() > 0 && topic.length() > 0) {
+                if (message.length() > 0 && topic.length() > 0 && topicVar.length() >0) {
                     final Intent resultIntent = new Intent();
 
 
                     resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC, topic);
                     resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE, message);
+                    resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR,topicVar);
                 /*
                  * The blurb is concise status text to be displayed in the host's UI.
                  */

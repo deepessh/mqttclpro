@@ -39,5 +39,13 @@
         android:layout_alignParentStart="true"
         android:hint="@string/message_tasker_var"/>
 
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/mqttTopicVar"
+        android:layout_below="@+id/editText2"
+        android:layout_alignParentStart="true"
+        android:hint="@string/topic_tasker_var"/>
+
 
 </RelativeLayout>
