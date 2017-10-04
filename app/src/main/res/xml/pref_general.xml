@@ -85,6 +85,48 @@
         android:defaultValue="false"
         android:key="cleansession"
         android:title="@string/pref_title_cleansession" />
+    <com.github.angads25.filepicker.view.FilePickerPreference
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:key="ca_crt"
+        android:title="@string/ca_crt"
+        android:summary="@string/ca_crt_desc"
+        android:defaultValue="@string/ca_crt_default"
+        app:error_dir="/mnt"
+        app:root_dir="/sdcard"
+        app:selection_mode="single_mode"
+        app:selection_type="file_select"
+        app:extensions="crt:"/>
+    <com.github.angads25.filepicker.view.FilePickerPreference
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:key="client_crt"
+        android:title="@string/client_crt"
+        android:summary="@string/client_crt_desc"
+        android:defaultValue="@string/client_crt_default"
+        app:error_dir="/mnt"
+        app:root_dir="/sdcard"
+        app:selection_mode="single_mode"
+        app:selection_type="file_select"
+        app:extensions="crt:"/>
+    <com.github.angads25.filepicker.view.FilePickerPreference
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:key="client_key"
+        android:title="@string/client_key"
+        android:summary="@string/client_key_desc"
+        android:defaultValue="@string/client_key_default"
+        app:error_dir="/mnt"
+        app:root_dir="/sdcard"
+        app:selection_mode="single_mode"
+        app:selection_type="file_select"
+        app:extensions="key:"/>
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="@string/client_key_pwd_default"
+        android:inputType="textCapWords"
+        android:key="client_key_pwd"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/client_key_pwd" />
 
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
          dismiss it. -->

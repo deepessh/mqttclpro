@@ -1,5 +1,6 @@
 package in.dc297.mqttclpro;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -7,11 +8,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -39,6 +44,7 @@ public class SubscribeActivity extends AppCompatActivity {
     private ListView topicsLv = null;
     private TopicsListAdapter topicsLVAdapter = null;
     private SharedPreferences settings;
+    private static final int REQUEST_STORAGE_PERMISSION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -161,6 +167,31 @@ public class SubscribeActivity extends AppCompatActivity {
         statusTv = (TextView) findViewById(R.id.statusTV);
         if (statusTv != null) {
             statusTv.setText(settings.getString("servicestatus","Waiting for connection"));
+        }
+        if(ContextCompat.checkSelfPermission(SubscribeActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED)
+        {
+            requestStoragePermission();
+        }
+    }
+
+    private void requestStoragePermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(SubscribeActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            Toast.makeText(SubscribeActivity.this,"Permission required for self signed certificate",Toast.LENGTH_SHORT).show();
+        }
+        ActivityCompat.requestPermissions(SubscribeActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                REQUEST_STORAGE_PERMISSION);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_STORAGE_PERMISSION) {
+            if (grantResults.length != 1 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(SubscribeActivity.this,"Permission denied",Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 

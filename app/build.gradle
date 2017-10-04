@@ -8,8 +8,8 @@ android {
         applicationId "in.dc297.mqttclpro"
         minSdkVersion 17
         targetSdkVersion 25
-        versionCode 21
-        versionName "2.3.2"
+        versionCode 22
+        versionName "3.0.0"
     }
     buildTypes {
         release {
@@ -35,5 +35,6 @@ dependencies {
     compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.56'
     compile 'org.sufficientlysecure:donations:2.5'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.github.angads25:filepicker:1.1.1'
     testCompile 'junit:junit:4.12'
 }

@@ -4,7 +4,9 @@ package in.dc297.mqttclpro;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -21,7 +23,12 @@ import android.text.TextUtils;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 
+import com.github.angads25.filepicker.view.FilePickerPreference;
+
+import java.net.URISyntaxException;
 import java.util.List;
+
+import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -39,6 +46,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      * A preference value change listener that updates the preference's summary
      * to reflect its new value.
      */
+
     private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
         @Override
         public boolean onPreferenceChange(Preference preference, Object value) {
@@ -78,7 +86,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     }
                 }
 
-            } else {
+            }
+            else if (preference instanceof FilePickerPreference){
+                SharedPreferences preferences = preference.getSharedPreferences();
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putString(preference.getKey(), ((String)value).split(":")[0]);
+                editor.commit();
+                preference.setSummary(((String)value).split(":")[0]);
+            }
+            else {
                 // For all other preferences, set the summary to the value's
                 // simple string representation.
                 preference.setSummary(stringValue);
@@ -175,6 +191,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 || LastWillPreferenceFragment.class.getName().equals(fragmentName);
     }
 
+    private static void removePreference(Preference preference){
+        SharedPreferences preferences = preference.getSharedPreferences();
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.remove(preference.getKey());
+        editor.commit();
+        preference.setSummary("");
+    }
     /**
      * This fragment shows general preferences only. It is used when the
      * activity is showing a two-pane settings UI.
@@ -196,7 +219,45 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             bindPreferenceSummaryToValue(findPreference("port"));
             bindPreferenceSummaryToValue(findPreference("user"));
             bindPreferenceSummaryToValue(findPreference("password"));
+            bindPreferenceSummaryToValue(findPreference("ca_crt"));
+            bindPreferenceSummaryToValue(findPreference("client_crt"));
+            bindPreferenceSummaryToValue(findPreference("client_key"));
+
+            final FilePickerPreference fileDialog=(FilePickerPreference)findPreference("ca_crt");
+            fileDialog.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
+            fileDialog.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    removePreference(preference);
+                    fileDialog.onPreferenceClick(preference);
+                    return false;
+                }
+            });
+
+            final FilePickerPreference fileDialog1=(FilePickerPreference)findPreference("client_crt");
+            fileDialog1.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
+            fileDialog1.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    removePreference(preference);
+                    fileDialog1.onPreferenceClick(preference);
+                    return false;
+                }
+            });
+
+            final FilePickerPreference fileDialog2=(FilePickerPreference)findPreference("client_key");
+            fileDialog2.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
+            fileDialog2.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    removePreference(preference);
+                    fileDialog2.onPreferenceClick(preference);
+                    return false;
+                }
+            });
+
         }
+
 
         @Override
         public boolean onOptionsItemSelected(MenuItem item) {

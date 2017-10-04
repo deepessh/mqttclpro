@@ -48,6 +48,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
+import in.dc297.mqttclpro.SSL.SSLUtil;
 import in.dc297.mqttclpro.tasker.Constants;
 import in.dc297.mqttclpro.tasker.PluginBundleManager;
 import in.dc297.mqttclpro.tasker.PublishTaskerActivity;
@@ -251,6 +252,10 @@ public class MQTTService extends Service implements MqttCallback
     private boolean         ws                   = false;
     private boolean         cleanSession         = false;
     private MqttClientPersistence usePersistence       = null;
+    private String          ca_crt               = null;
+    private String          client_crt           = null;
+    private String          client_key           = null;
+    private String          client_key_pwd       = null;
 
     private String  lastwill_topic = "",
             lastwill_message = "";
@@ -327,7 +332,7 @@ public class MQTTService extends Service implements MqttCallback
     private FireTaskerReceiver taskerFireReceiver;
 
     private ArrayList<String> prefs_key = new ArrayList<>(Arrays.asList("url","port","keepalive","user",
-            "password","cleansession","ssl_switch", "lastwill_topic", "lastwill_message", "lastwill_qos", "lastwill_retained","clientid","ws_switch","retry_interval"));
+            "password","cleansession","ssl_switch", "lastwill_topic", "lastwill_message", "lastwill_qos", "lastwill_retained","clientid","ws_switch","retry_interval", "ca_crt","client_crt","client_key","client_key_pwd"));
     //listener for shared preferences to reconnect if user changes server settings
     SharedPreferences.OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
@@ -785,6 +790,10 @@ public class MQTTService extends Service implements MqttCallback
             lastwill_qos = 0;
         }
         lastwill_retained = settings.getBoolean("lastwill_retained",false);
+        ca_crt = settings.getString("ca_crt",null);
+        client_crt = settings.getString("client_crt",null);
+        client_key = settings.getString("client_key",null);
+        client_key_pwd = settings.getString("client_key_pwd",null);
 
         String protocol = "tcp";
         if(ws) protocol = "ws";
@@ -1161,7 +1170,7 @@ public class MQTTService extends Service implements MqttCallback
                 broadcastServiceStatus("Connecting...");
                 Log.i(LOG_TAG,"Connecting...");
                 if(ssl){
-                    //connOpts.setSocketFactory(SSLUtil.getSocketFactory("/mnt/sdcard/Mosquitto/ca.crt",null,null,null));
+                    connOpts.setSocketFactory(SSLUtil.getSocketFactory(ca_crt,client_crt,client_key,client_key_pwd));
                 }
                 mqttClient.connect(connOpts);
                 scheduleNextPing();
