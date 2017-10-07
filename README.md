@@ -32,5 +32,8 @@ Feedback is highly appreciated!
 
 If you found the application helpful. Please consider buying me a beer.
 
-BTC Address : 1sPeSrjGYt6AtiYPW6YFbKxWYBzc5DY2b
-Paypal Account email : deepeshch2k9@gmail.com
+Special thanks to:
+Dale Lane - http://dalelane.co.uk/blog/?p=1599 (This was my inspiration)
+StackOverflow Community :D
+FilePicker - https://github.com/Angads25/android-filepicker
+SSL Support - https://gist.github.com/sharonbn/4104301
