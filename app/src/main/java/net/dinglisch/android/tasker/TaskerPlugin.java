@@ -42,7 +42,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
- 
+
 public class TaskerPlugin {
 
 	private final static String 	TAG = "TaskerPlugin"; 
@@ -568,11 +568,11 @@ public class TaskerPlugin {
 		 * @see #addPassThroughMessageID
 		 * 
 		*/
-		public static void addPassThroughData( Intent requestQueryIntent, Bundle data ) {
+		public static int addPassThroughData( Intent requestQueryIntent, Bundle data, long messageId) {
 			
 			Bundle passThroughBundle = retrieveOrCreatePassThroughBundle( requestQueryIntent );
-			
 			passThroughBundle.putAll( data );
+            return lastRandomsSeen[randomInsertPointer-1];
 		}
 
 		/**

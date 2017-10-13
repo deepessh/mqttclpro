@@ -187,7 +187,7 @@ public final class Intent
     public static final String EXTRA_TOPIC_VAR = "in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR"; //$NON-NLS-1$
     public static final String EXTRA_QOS = "in.dc297.mqttclpro.tasker.Intent.EXTRA_QOS"; //$NON-NLS-1$
     public static final String EXTRA_RETAINED = "in.dc297.mqttclpro.tasker.Intent.EXTRA_RETAINED"; //$NON-NLS-1$
-    public static final String EXTRA_BUNDLE = "in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE";
+    public static final String EXTRA_BUNDLE = "com.twofortyfouram.locale.intent.extra.BUNDLE";
 
     /**
      * Type: {@code String}.

@@ -22,7 +22,7 @@ import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
  * Created by deepesh on 28/3/16.
  */
 public class DBHelper extends SQLiteOpenHelper {
-    private static final int DB_VERSION = 8;
+    private static final int DB_VERSION = 23;
 
     public DBHelper(Context context) {
         super(context, context.getPackageName(), null, DB_VERSION);
@@ -32,7 +32,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         db.execSQL("CREATE TABLE IF NOT EXISTS topics(_id INTEGER PRIMARY KEY AUTOINCREMENT,topic TEXT,show_noti INTEGER DEFAULT 0,topic_type INTEGER DEFAULT 0, qos INTEGER DEFAULT 0)");
-        db.execSQL("CREATE TABLE IF NOT EXISTS messages(_id INTEGER PRIMARY KEY AUTOINCREMENT,topic_id INTEGER,message VARCHAR,timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,read INTEGER DEFAULT 0,topic TEXT,display_topic TEXT,status INTEGER DEFAULT 1,qos INTEGER DEFAULT 0, retained INTEGER default 0)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS messages(_id INTEGER PRIMARY KEY AUTOINCREMENT,topic_id INTEGER,message VARCHAR,timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,read INTEGER DEFAULT 0,topic TEXT,display_topic TEXT,status INTEGER DEFAULT 1,qos INTEGER DEFAULT 0, retained INTEGER default 0, message_tasker_id INTEGER default 0)");
 
     }
 
@@ -41,6 +41,9 @@ public class DBHelper extends SQLiteOpenHelper {
         Log.i(LOG_TAG,"New version : "+String.valueOf(newVersion) + "Old version : "+String.valueOf(oldVersion));
         if(oldVersion<8) {
             db.execSQL("ALTER TABLE messages ADD COLUMN retained INTEGER default 0");
+        }
+        if(oldVersion<23){
+            db.execSQL("ALTER TABLE messages ADD COLUMN message_tasker_id INTEGER default 0");
         }
 
     }
@@ -126,6 +129,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public long addMessageReceived(String topic,String message, int qos,int retained){
         SQLiteDatabase db = getWritableDatabase();
         Util myUtil = new Util();
+        long insertId = 0;
         try {
             db.beginTransaction();
             Cursor topicCursor = db.rawQuery("SELECT _id,topic from topics where topic_type=0",null);
@@ -143,12 +147,12 @@ public class DBHelper extends SQLiteOpenHelper {
                     values.put("display_topic",topic);
                     values.put("retained",retained);
                     Log.i("db", "putting received message for topic"+topicInDb);
-                    db.insertOrThrow("messages",null,values);
+                    insertId = db.insertOrThrow("messages",null,values);
                 }
                 topicCursor.moveToNext();
             }
             db.setTransactionSuccessful();
-            return 1;
+            return insertId;
         }
         catch(Exception e){
             e.printStackTrace();
@@ -156,6 +160,28 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         finally {
             db.endTransaction();
+        }
+    }
+
+    public Cursor getMessageForTaskerId(int messageId){
+        SQLiteDatabase db = getReadableDatabase();
+        try{
+            Cursor messageCursor = db.rawQuery("SELECT message, topic from messages where message_tasker_id="+messageId,null);
+            return messageCursor;
+        }
+        catch(SQLException se){
+            se.printStackTrace();
+        }
+        return null;
+    }
+
+    public void setTaskerMessageId(long messageId, int taskerMessageId){
+        SQLiteDatabase db = getWritableDatabase();
+        try{
+            db.execSQL("UPDATE messages set message_tasker_id="+taskerMessageId+" where _id="+messageId);
+        }
+        catch(SQLException se){
+            se.printStackTrace();
         }
     }
 

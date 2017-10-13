@@ -72,7 +72,8 @@
             android:name=".tasker.PublishTaskerActivity"
             android:exported="true"
             android:label="@string/title_activity_publish_tasker"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:icon="@mipmap/ic_launcher">
             <intent-filter>
                 <action android:name="net.dinglisch.android.tasker.ACTION_EDIT_EVENT" />
             </intent-filter>
@@ -81,7 +82,8 @@
             android:name=".tasker.ActionEditActivity"
             android:exported="true"
             android:label="@string/title_activity_action_edit"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:icon="@mipmap/ic_launcher">
             <intent-filter>
                 <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />
             </intent-filter>

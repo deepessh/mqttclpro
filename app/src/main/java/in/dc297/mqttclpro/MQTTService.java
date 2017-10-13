@@ -83,13 +83,8 @@ public class MQTTService extends Service implements MqttCallback
 
     // constant used internally to schedule the next ping event
     public static final String MQTT_PING_ACTION = "in.dc297.mqttclpro.PING";
-    public static final String MQTT_RECONNECT_ACTION = "in.dc297.mqttclpro.RECONNECT";
 
     public static final String MQTT_PUBLISH = "in.dc297.mqttclpro.PUBLISH";
-
-    // constants used by status bar notifications
-    public static final int MQTT_NOTIFICATION_ONGOING = 1;
-    public static final int MQTT_NOTIFICATION_UPDATE  = 2;
 
     private ConnectAsyncTask connectTask = null;
     private DisconnectAsyncTask disconnectTask = null;
@@ -174,8 +169,8 @@ public class MQTTService extends Service implements MqttCallback
         //
         //  for times when the app's Activity UI is not running, the Service
         //   will need to safely store the data that it receives
-        if (addReceivedMessageToStore(topic, messageBody,message.getQos(),message.isRetained()))
-        {
+        long messageId = addReceivedMessageToStore(topic, messageBody,message.getQos(),message.isRetained());
+        if(messageId!=0) {
             // this is a new message - a value we haven't seen before
 
             //
@@ -189,13 +184,16 @@ public class MQTTService extends Service implements MqttCallback
             notifyUser("New data received", topic, messageBody);
 
             //tasker stuff starts
-            Bundle publishedBundle = PluginBundleManager.generateBundle(getApplicationContext(),messageBody,topic);
-            TaskerPlugin.Event.addPassThroughMessageID( INTENT_REQUEST_REQUERY );
-            TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY,publishedBundle);
+            Bundle publishedBundle = PluginBundleManager.generateBundle(getApplicationContext(), messageBody, topic);
+
+            TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY);
+            int taskerMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY, publishedBundle, messageId);
+
+            db.setTaskerMessageId(messageId,taskerMessageId);
+            System.out.println("Put message for message id = " + messageId + " and tasker message id = " + taskerMessageId);
             sendBroadcast(INTENT_REQUEST_REQUERY);
             //tasker stuff ends
         }
-
         // we're finished - if the phone is switched off, it's okay for the CPU
         //  to sleep now
         wl.release();
@@ -1044,13 +1042,10 @@ public class MQTTService extends Service implements MqttCallback
 
     private Hashtable<String, String> dataCache = new Hashtable<String, String>();
 
-    private boolean addReceivedMessageToStore(String key, String value,int qos,boolean retained)
+    private long addReceivedMessageToStore(String key, String value,int qos,boolean retained)
     {
         Log.i(LOG_TAG,"adding to db");
-        if(db.addMessage(key,value,0,qos,retained)!=0){
-            return true;
-        }
-        return false;
+        return db.addMessage(key,value,0,qos,retained);
 
         /*String previousValue = null;
 

@@ -12,7 +12,10 @@ import android.util.Log;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
+import static android.content.ContentValues.TAG;
 import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
+import static in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE;
+import static in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -42,19 +45,21 @@ public class MyIntentService extends IntentService {
             public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
                 db = new DBHelper(getApplicationContext());
                 MQTTService mqttService = ((MQTTService.LocalBinder<MQTTService>) iBinder).getService();
-
-                String topic = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
-                String message = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
-                String qos = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_QOS);
-                boolean retained = intent.getExtras().getBoolean(in.dc297.mqttclpro.tasker.Intent.EXTRA_RETAINED);
+                Bundle taskerBundle = intent.getBundleExtra(EXTRA_BUNDLE);
+                String topic = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
+                String message = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
+                String qos = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_QOS);
+                boolean retained = taskerBundle.getBoolean(in.dc297.mqttclpro.tasker.Intent.EXTRA_RETAINED);
                 try{
                     MqttTopic.validate(topic,false);
                 }
                 catch (IllegalStateException ise){
                     ise.printStackTrace();
+                    return;
                 }
                 catch(IllegalArgumentException iae){
                     iae.printStackTrace();
+                    return;
                 }
 
                 try{
@@ -62,6 +67,7 @@ public class MyIntentService extends IntentService {
                 }
                 catch(IllegalArgumentException iae){
                     iae.printStackTrace();
+                    return;
                 }
 
                 db.addTopic(topic,1,Integer.parseInt(qos));

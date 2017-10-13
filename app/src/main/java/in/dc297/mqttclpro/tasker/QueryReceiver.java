@@ -15,6 +15,7 @@ package in.dc297.mqttclpro.tasker;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -23,12 +24,16 @@ import net.dinglisch.android.tasker.TaskerPlugin;
 
 import java.util.Locale;
 
+import in.dc297.mqttclpro.DBHelper;
 import in.dc297.mqttclpro.Util;
+
+import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
 
 public final class QueryReceiver extends BroadcastReceiver
 {
 
 
+    DBHelper db = null;
     @Override
     public void onReceive(final Context context, final Intent intent)
     {
@@ -40,15 +45,17 @@ public final class QueryReceiver extends BroadcastReceiver
         {
             if (Constants.IS_LOGGABLE)
             {
-                Log.e(Constants.LOG_TAG,
+                Log.e(LOG_TAG,
                       String.format(Locale.US, "Received unexpected Intent action %s", intent.getAction())); //$NON-NLS-1$
             }
             return;
         }
 
-        final String topic = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
-        final String message = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
-        final String topicVar = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR);
+        Bundle taskerBundle = intent.getBundleExtra(EXTRA_BUNDLE);
+
+        final String topic = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
+        final String message = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
+        final String topicVar = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR);
 
         int messageID = TaskerPlugin.Event.retrievePassThroughMessageID(intent);
         if ( messageID == -1 ) {
@@ -56,47 +63,55 @@ public final class QueryReceiver extends BroadcastReceiver
             return;
         }
         BundleScrubber.scrub(intent);
+        Bundle publishedBundle = null;
+        try {
+            db = new DBHelper(context);
+            Cursor messageCursor = db.getMessageForTaskerId(messageID);
+            if (messageCursor != null) {
+                messageCursor.moveToFirst();
+                while (!messageCursor.isAfterLast()) {
+                    publishedBundle = PluginBundleManager.generateBundle(context, messageCursor.getString(messageCursor.getColumnIndexOrThrow("message")), messageCursor.getString(messageCursor.getColumnIndexOrThrow("topic")));
+                    messageCursor.moveToNext();
+                }
+            }
 
-        //final Bundle bundle = intent.getBundleExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE);
+            System.out.println("Retrieving message for message id = " + messageID);
 
-        final Bundle publishedBundle = TaskerPlugin.Event.retrievePassThroughData(intent);
+            String publishedTopic, publishedMessage;
 
-        String  publishedTopic,publishedMessage;
-        BundleScrubber.scrub(publishedBundle);
-
-        if(publishedBundle!=null) {
-            publishedTopic = publishedBundle.getString(PluginBundleManager.BUNDLE_EXTRA_STRING_TOPIC);
-            publishedMessage = publishedBundle.getString(PluginBundleManager.BUNDLE_EXTRA_STRING_MESSAGE);
-            if(!Util.mosquitto_topic_matches_sub(topic, publishedTopic)){
+            if (publishedBundle != null) {
+                publishedTopic = publishedBundle.getString(PluginBundleManager.BUNDLE_EXTRA_STRING_TOPIC);
+                publishedMessage = publishedBundle.getString(PluginBundleManager.BUNDLE_EXTRA_STRING_MESSAGE);
+                if (!Util.mosquitto_topic_matches_sub(topic, publishedTopic)) {
+                    setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_UNSATISFIED);
+                    return;
+                }
+            } else {
                 setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_UNSATISFIED);
+                if (Constants.IS_LOGGABLE) {
+                    Log.e(LOG_TAG,
+                            String.format(Locale.US, "No publish data in intent!")); //$NON-NLS-1$
+                }
                 return;
             }
-        }
-        else{
-            setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_UNSATISFIED);
-            if (Constants.IS_LOGGABLE)
-            {
-                Log.e(Constants.LOG_TAG,
-                        String.format(Locale.US, "No publish data in intent!")); //$NON-NLS-1$
+
+            if (Constants.IS_LOGGABLE) {
+                Log.v(LOG_TAG, "Received a query."); //$NON-NLS-1$
             }
-            return;
-        }
 
-        if (Constants.IS_LOGGABLE)
-        {
-            Log.v(Constants.LOG_TAG,"Received a query."); //$NON-NLS-1$
+            setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_SATISFIED);
+            if (TaskerPlugin.Setting.hostSupportsVariableReturn(intent.getExtras())) {
+                Bundle vars = new Bundle();
+                vars.putString("%" + message, publishedMessage);
+                vars.putString("%" + topicVar, publishedTopic);
+                Log.i("Query success", "Returning var name " + message + " with value " + publishedMessage);
+                TaskerPlugin.addVariableBundle(getResultExtras(true), vars);
+            } else {
+                Log.i("Query success", "Seems like host doesnt support variable setting");
+            }
         }
-
-        setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_SATISFIED);
-        if ( TaskerPlugin.Setting.hostSupportsVariableReturn( intent.getExtras() ) ) {
-            Bundle vars = new Bundle();
-            vars.putString( "%"+message, publishedMessage );
-            vars.putString("%"+topicVar, publishedTopic);
-            Log.i("Query success","Returning var name "+message+" with value "+publishedMessage);
-            TaskerPlugin.addVariableBundle( getResultExtras( true ), vars );
-        }
-        else{
-            Log.i("Query success","Seems like host doesnt support variable setting");
+        catch(Exception e){
+            e.printStackTrace();
         }
     }
 }

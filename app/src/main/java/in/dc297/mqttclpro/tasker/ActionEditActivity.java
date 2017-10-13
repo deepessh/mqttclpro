@@ -21,6 +21,7 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 import in.dc297.mqttclpro.R;
 
 import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
+import static in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE;
 
 public class ActionEditActivity extends AbstractPluginActivity {
 
@@ -31,10 +32,13 @@ public class ActionEditActivity extends AbstractPluginActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final String topic = getIntent().getStringExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
-        final String message = getIntent().getStringExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
-        final boolean retained = getIntent().getBooleanExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_RETAINED,false);
-        final String qos = getIntent().getStringExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_QOS);
+        Bundle taskerBundle = getIntent().getBundleExtra(EXTRA_BUNDLE);
+
+        final String topic = taskerBundle!=null?taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC):"";
+        final String message = taskerBundle!=null ? taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE) : "";
+        final boolean retained = taskerBundle!=null?taskerBundle.getBoolean(in.dc297.mqttclpro.tasker.Intent.EXTRA_RETAINED,false):false;
+        final String qos = taskerBundle!=null?taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_QOS):"";
+
         final Spinner qosSpinner = (Spinner) findViewById(R.id.qos_spinner);
         Switch retainedSwitch = (Switch) findViewById(R.id.message_retained);
 
@@ -42,14 +46,7 @@ public class ActionEditActivity extends AbstractPluginActivity {
         qosAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         qosSpinner.setAdapter(qosAdapter);
-        /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });*/
+
         if (null == savedInstanceState)
         {
             if(message!=null && message!="") {
@@ -98,23 +95,24 @@ public class ActionEditActivity extends AbstractPluginActivity {
             if (topic.length() > 0)
             {
                 final Intent resultIntent = new Intent();
-
-
-
-                resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC, topic);
-                resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE, message);
-                resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_RETAINED,retained);
-                resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_QOS,qos);
                 /*
                  * The blurb is concise status text to be displayed in the host's UI.
                  */
                 final String blurb = generateBlurb(getApplicationContext(), topic+" : "+message+" : "+qos + " : "+retained);
                 resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_STRING_BLURB, blurb);
 
+                Bundle taskerBundle = new Bundle();
+                taskerBundle.putString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC, topic);
+                taskerBundle.putString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE, message);
+                taskerBundle.putBoolean(in.dc297.mqttclpro.tasker.Intent.EXTRA_RETAINED,retained);
+                taskerBundle.putString(in.dc297.mqttclpro.tasker.Intent.EXTRA_QOS,qos);
+
                 //replace tasker variables
                 resultIntent.putExtra(TaskerPlugin.Setting.BUNDLE_KEY_VARIABLE_REPLACE_STRINGS,in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC+" "+in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
 
-                setResult(RESULT_OK, resultIntent)  ;
+                resultIntent.putExtra(EXTRA_BUNDLE,taskerBundle);
+
+                setResult(RESULT_OK, resultIntent);
             }
         }
 

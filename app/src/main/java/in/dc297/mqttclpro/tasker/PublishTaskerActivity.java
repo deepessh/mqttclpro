@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import in.dc297.mqttclpro.DBHelper;
 import in.dc297.mqttclpro.R;
 
+import static in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE;
+
 public class PublishTaskerActivity extends AbstractPluginActivity {
 
     @Override
@@ -30,9 +32,16 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final String topic = getIntent().getStringExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
-        final String message = getIntent().getStringExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
-        final String topicVar = getIntent().getStringExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR);
+        String topic = "";
+        String message = "";
+        String topicVar = "";
+
+        Bundle taskerBundle = getIntent().getBundleExtra(EXTRA_BUNDLE);
+        if(taskerBundle!=null) {
+            topic = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
+            message = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
+            topicVar = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR);
+        }
         /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,16 +105,18 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
 
                 if (message.length() > 0 && topic.length() > 0 && topicVar.length() >0) {
                     final Intent resultIntent = new Intent();
-
-
-                    resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC, topic);
-                    resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE, message);
-                    resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR,topicVar);
                 /*
                  * The blurb is concise status text to be displayed in the host's UI.
                  */
-                    final String blurb = generateBlurb(getApplicationContext(), topic + " : " + message);
+                    Bundle taskerBundle = new Bundle();
+                    taskerBundle.putString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC, topic);
+                    taskerBundle.putString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE, message);
+                    taskerBundle.putString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR,topicVar);
+
+                    final String blurb = generateBlurb(getApplicationContext(), topic + " : " + message + " : " + topicVar);
                     resultIntent.putExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_STRING_BLURB, blurb);
+
+                    resultIntent.putExtra(EXTRA_BUNDLE,taskerBundle);
 
                     setResult(RESULT_OK, resultIntent);
                 }
