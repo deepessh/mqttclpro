@@ -22,7 +22,7 @@ import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
  * Created by deepesh on 28/3/16.
  */
 public class DBHelper extends SQLiteOpenHelper {
-    private static final int DB_VERSION = 23;
+    private static final int DB_VERSION = 9;
 
     public DBHelper(Context context) {
         super(context, context.getPackageName(), null, DB_VERSION);
@@ -42,7 +42,7 @@ public class DBHelper extends SQLiteOpenHelper {
         if(oldVersion<8) {
             db.execSQL("ALTER TABLE messages ADD COLUMN retained INTEGER default 0");
         }
-        if(oldVersion<23){
+        if(oldVersion<9){
             db.execSQL("ALTER TABLE messages ADD COLUMN message_tasker_id INTEGER default 0");
         }
 

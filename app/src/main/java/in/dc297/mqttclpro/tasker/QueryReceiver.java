@@ -28,6 +28,7 @@ import in.dc297.mqttclpro.DBHelper;
 import in.dc297.mqttclpro.Util;
 
 import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
+import static in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE;
 
 public final class QueryReceiver extends BroadcastReceiver
 {
