@@ -3,12 +3,12 @@
     <SwitchPreference
         android:defaultValue="false"
         android:key="ssl_switch"
-        android:summary="@string/pref_description_ssl"
+        android:summary="@string/ssl_switch_desc"
         android:title="@string/pref_title_ssl" />
     <SwitchPreference
         android:defaultValue="false"
         android:key="ws_switch"
-        android:summary="@string/pref_description_ws"
+        android:summary="@string/ws_switch_desc"
         android:title="@string/pref_title_ws" />
 
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
@@ -18,6 +18,7 @@
         android:defaultValue="@string/pref_default_url"
         android:inputType="textCapWords"
         android:key="url"
+        android:summary="@string/url_desc"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
@@ -29,6 +30,7 @@
         android:defaultValue="@string/pref_default_port"
         android:inputType="number"
         android:key="port"
+        android:summary="@string/port_desc"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
@@ -39,6 +41,7 @@
         android:defaultValue="@string/pref_default_user"
         android:inputType="textCapWords"
         android:key="user"
+        android:summary="@string/user_desc"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
@@ -49,6 +52,7 @@
         android:defaultValue="@string/pref_default_password"
         android:inputType="textCapWords"
         android:key="password"
+        android:summary="@string/password_desc"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
@@ -58,6 +62,7 @@
         android:defaultValue="@string/pref_default_keepalive"
         android:inputType="number"
         android:key="keepalive"
+        android:summary="@string/keepalive_desc"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
@@ -71,7 +76,7 @@
         android:selectAllOnFocus="true"
         android:singleLine="true"
         android:title="@string/pref_title_retry_interval"
-        android:summary="@string/pref_title_retry_summary"/>
+        android:summary="@string/retry_interval_desc"/>
     <EditTextPreference
         android:capitalize="words"
         android:defaultValue="@string/pref_default_url"
@@ -84,6 +89,7 @@
     <SwitchPreference
         android:defaultValue="false"
         android:key="cleansession"
+        symmary="@string/cleansession_desc"
         android:title="@string/pref_title_cleansession" />
     <com.github.angads25.filepicker.view.FilePickerPreference
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -118,6 +124,17 @@
         app:selection_mode="single_mode"
         app:selection_type="file_select"
         app:extensions="key:"/>
+    <com.github.angads25.filepicker.view.FilePickerPreference
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:key="client_p12"
+        android:title="@string/client_p12"
+        android:summary="@string/client_p12_desc"
+        android:defaultValue="@string/client_p12_default"
+        app:error_dir="/mnt"
+        app:root_dir="/sdcard"
+        app:selection_mode="single_mode"
+        app:selection_type="file_select"
+        app:extensions="p12:"/>
     <EditTextPreference
         android:capitalize="words"
         android:defaultValue="@string/client_key_pwd_default"
@@ -126,7 +143,8 @@
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
-        android:title="@string/client_key_pwd" />
+        android:title="@string/client_key_pwd"
+        android:summary="@string/client_key_pwd_desc"/>
 
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
          dismiss it. -->

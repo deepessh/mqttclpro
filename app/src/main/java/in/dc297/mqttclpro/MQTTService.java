@@ -254,6 +254,7 @@ public class MQTTService extends Service implements MqttCallback
     private String          client_crt           = null;
     private String          client_key           = null;
     private String          client_key_pwd       = null;
+    private String          client_p12           = null;
 
     private String  lastwill_topic = "",
             lastwill_message = "";
@@ -329,8 +330,26 @@ public class MQTTService extends Service implements MqttCallback
     private Pinger pinger;
     private FireTaskerReceiver taskerFireReceiver;
 
-    private ArrayList<String> prefs_key = new ArrayList<>(Arrays.asList("url","port","keepalive","user",
-            "password","cleansession","ssl_switch", "lastwill_topic", "lastwill_message", "lastwill_qos", "lastwill_retained","clientid","ws_switch","retry_interval", "ca_crt","client_crt","client_key","client_key_pwd"));
+    private ArrayList<String> prefs_key = new ArrayList<>(Arrays.asList(
+            "url"
+            ,"port"
+            ,"keepalive"
+            ,"user"
+            ,"password"
+            ,"cleansession"
+            ,"ssl_switch"
+            , "lastwill_topic"
+            , "lastwill_message"
+            , "lastwill_qos"
+            , "lastwill_retained"
+            ,"clientid"
+            ,"ws_switch"
+            ,"retry_interval"
+            , "ca_crt"
+            ,"client_crt"
+            ,"client_key"
+            ,"client_key_pwd"
+            ,"client_p12"));
     //listener for shared preferences to reconnect if user changes server settings
     SharedPreferences.OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
@@ -792,6 +811,8 @@ public class MQTTService extends Service implements MqttCallback
         client_crt = settings.getString("client_crt",null);
         client_key = settings.getString("client_key",null);
         client_key_pwd = settings.getString("client_key_pwd",null);
+        client_p12 = settings.getString("client_p12",null);
+
 
         String protocol = "tcp";
         if(ws) protocol = "ws";
@@ -1165,7 +1186,7 @@ public class MQTTService extends Service implements MqttCallback
                 broadcastServiceStatus("Connecting...");
                 Log.i(LOG_TAG,"Connecting...");
                 if(ssl){
-                    connOpts.setSocketFactory(SSLUtil.getSocketFactory(ca_crt,client_crt,client_key,client_key_pwd));
+                    connOpts.setSocketFactory(SSLUtil.getSocketFactory(ca_crt,client_crt,client_key,client_key_pwd, client_p12));
                 }
                 mqttClient.connect(connOpts);
                 scheduleNextPing();

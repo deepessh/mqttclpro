@@ -82,8 +82,8 @@
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
-    <string name="pref_description_ssl">Use SSL for connection</string>
-    <string name="pref_description_ws">Use Websockets for connection</string>
+    <string name="ssl_switch_desc">Use SSL for connection</string>
+    <string name="ws_switch_desc">Use Websockets for connection</string>
     <string name="pref_title_cleansession">Clean Session</string>
     <string name="pref_title_ssl">Enable SSL</string>
     <string name="pref_title_ws">Use Websockets</string>
@@ -122,16 +122,26 @@
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="pref_default_retry_interval">100</string>
     <string name="pref_title_retry_interval">Retry Interval (seconds)</string>
-    <string name="pref_title_retry_summary">If the connection to the broker is lost, this value will be used as the interval between connection retries.</string>
+    <string name="retry_interval_desc">If the connection to the broker is lost, this value will be used as the interval between connection retries.</string>
+    <string name="cleansession_desc">Clean Session</string>
     <string name="ca_crt">CA crt file path</string>
     <string name="ca_crt_desc">Choose a crt file to be used as the CA</string>
-    <string name="ca_crt_default">/mnt/sdcard/ca.crt</string>
+    <string name="ca_crt_default"/>
     <string name="client_crt">Client Certificate</string>
     <string name="client_crt_desc">Choose a crt file to be used as client certificate</string>
-    <string name="client_crt_default">/mnt/sdcard/client.crt</string>
+    <string name="client_crt_default"/>
     <string name="client_key">Client Key file</string>
     <string name="client_key_desc">Choose a key file to be used as key for client certificate</string>
-    <string name="client_key_default">/mnt/sdcard/client.key</string>
+    <string name="client_key_default"/>
     <string name="client_key_pwd_default" />
     <string name="client_key_pwd">Client Key Password</string>
+    <string name="client_p12">Cliient .p12 file</string>
+    <string name="client_p12_desc">Choose a client p12 file having client.crt and client.key. If this is chosen, the client key and client crt chosen above will be ignored.</string>
+    <string name="client_p12_default" />
+    <string name="keepalive_desc">Keep Alive Interval in seconds</string>
+    <string name="password_desc">Enter your Password</string>
+    <string name="user_desc">Enter your Username</string>
+    <string name="port_desc">Broker port</string>
+    <string name="url_desc">Broker URL</string>
+    <string name="client_key_pwd_desc">Client Key/p12 Password</string>
 </resources>

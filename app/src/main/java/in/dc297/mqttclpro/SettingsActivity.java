@@ -59,11 +59,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 int index = listPreference.findIndexOfValue(stringValue);
 
                 // Set the summary to reflect the new value.
-                preference.setSummary(
-                        index >= 0
-                                ? listPreference.getEntries()[index]
-                                : null);
-
+                preference.setSummary(index >= 0
+                        ? listPreference.getEntries()[index]
+                        : null);
             } else if (preference instanceof RingtonePreference) {
                 // For ringtone preferences, look up the correct display value
                 // using RingtoneManager.
@@ -88,11 +86,18 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
             }
             else if (preference instanceof FilePickerPreference){
+                if (TextUtils.isEmpty(stringValue) && "client_p12".equals(preference.getKey())) {
+                    // Empty values correspond to 'silent' (no ringtone).
+                    preference.setSummary(preference.getContext().getString(R.string.client_p12_desc));
+
+                }
+                else{
+                    preference.setSummary(stringValue.split(":")[0]);
+                }
                 SharedPreferences preferences = preference.getSharedPreferences();
                 SharedPreferences.Editor editor = preferences.edit();
-                editor.putString(preference.getKey(), ((String)value).split(":")[0]);
+                editor.putString(preference.getKey(), stringValue.split(":")[0]);
                 editor.commit();
-                preference.setSummary(((String)value).split(":")[0]);
             }
             else {
                 // For all other preferences, set the summary to the value's
@@ -196,7 +201,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         SharedPreferences.Editor editor = preferences.edit();
         editor.remove(preference.getKey());
         editor.commit();
-        preference.setSummary("");
+        sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
+                PreferenceManager
+                        .getDefaultSharedPreferences(preference.getContext())
+                        .getString(preference.getKey(), ""));
     }
     /**
      * This fragment shows general preferences only. It is used when the
@@ -222,13 +230,16 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             bindPreferenceSummaryToValue(findPreference("ca_crt"));
             bindPreferenceSummaryToValue(findPreference("client_crt"));
             bindPreferenceSummaryToValue(findPreference("client_key"));
+            bindPreferenceSummaryToValue(findPreference("client_p12"));
 
             final FilePickerPreference fileDialog=(FilePickerPreference)findPreference("ca_crt");
             fileDialog.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
             fileDialog.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    removePreference(preference);
+                    if(!"".equals(PreferenceManager
+                            .getDefaultSharedPreferences(preference.getContext())
+                            .getString(preference.getKey(), ""))) removePreference(preference);
                     fileDialog.onPreferenceClick(preference);
                     return false;
                 }
@@ -239,7 +250,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             fileDialog1.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    removePreference(preference);
+                    if(!"".equals(PreferenceManager
+                            .getDefaultSharedPreferences(preference.getContext())
+                            .getString(preference.getKey(), ""))) removePreference(preference);
                     fileDialog1.onPreferenceClick(preference);
                     return false;
                 }
@@ -250,8 +263,23 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             fileDialog2.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    removePreference(preference);
+                    if(!"".equals(PreferenceManager
+                            .getDefaultSharedPreferences(preference.getContext())
+                            .getString(preference.getKey(), ""))) removePreference(preference);
                     fileDialog2.onPreferenceClick(preference);
+                    return false;
+                }
+            });
+
+            final FilePickerPreference fileDialog3=(FilePickerPreference)findPreference("client_p12");
+            fileDialog3.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
+            fileDialog3.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    if(!"".equals(PreferenceManager
+                            .getDefaultSharedPreferences(preference.getContext())
+                            .getString(preference.getKey(), ""))) removePreference(preference);
+                    fileDialog3.onPreferenceClick(preference);
                     return false;
                 }
             });

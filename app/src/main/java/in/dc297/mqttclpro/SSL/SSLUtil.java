@@ -22,6 +22,8 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
+
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.security.KeyPair;
 import java.security.KeyStore;
@@ -29,10 +31,12 @@ import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 
+import in.dc297.mqttclpro.Util;
+
 public class SSLUtil {
 
     public static SSLSocketFactory getSocketFactory(final String caCrtFile, final String crtFile, final String keyFile,
-                                                    final String password) {
+                                                    final String password, final String p12ClientFile) {
         try {
             /**
              * Add BouncyCastle as a Security Provider
@@ -40,20 +44,45 @@ public class SSLUtil {
             Security.addProvider(new BouncyCastleProvider());
 
             JcaX509CertificateConverter certificateConverter = new JcaX509CertificateConverter().setProvider("BC");
-
+            PEMParser reader = null;
+            TrustManagerFactory trustManagerFactory = null;
             /**
              * Load Certificate Authority (CA) certificate
              */
-            PEMParser reader = new PEMParser(new FileReader(caCrtFile));
-            X509CertificateHolder caCertHolder = (X509CertificateHolder) reader.readObject();
-            reader.close();
+            if(!Util.isNullOrBlanc(caCrtFile)) {
+                reader = new PEMParser(new FileReader(caCrtFile));
+                X509CertificateHolder caCertHolder = (X509CertificateHolder) reader.readObject();
+                reader.close();
 
-            X509Certificate caCert = certificateConverter.getCertificate(caCertHolder);
+                X509Certificate caCert = certificateConverter.getCertificate(caCertHolder);
+                /**
+                 * CA certificate is used to authenticate server
+                 */
+                KeyStore caKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                caKeyStore.load(null, null);
+                caKeyStore.setCertificateEntry("ca-certificate", caCert);
+
+                trustManagerFactory = TrustManagerFactory.getInstance(
+                        TrustManagerFactory.getDefaultAlgorithm());
+                trustManagerFactory.init(caKeyStore);
+            }
+            else{//load default android cakeystore
+                KeyStore caKeyStore = KeyStore.getInstance("AndroidCAStore");
+                caKeyStore.load(null);
+                trustManagerFactory.init(caKeyStore);
+            }
+            KeyManagerFactory keyManagerFactory = null;
 
             /**
              * Load client certificate
              */
-            if(crtFile!=null && crtFile!="") {
+            if(!Util.isNullOrBlanc(p12ClientFile)){
+                KeyStore clientKeyStore = KeyStore.getInstance("PKCS12");
+                clientKeyStore.load(new FileInputStream(p12ClientFile),(password!=null && password.length()>0)?password.toCharArray(): new char[0]);
+                keyManagerFactory = KeyManagerFactory.getInstance("X509");
+                keyManagerFactory.init(clientKeyStore,(password!=null && password.length()>0)?password.toCharArray(): new char[0]);
+            }
+            else if(crtFile!=null && crtFile!="") {
                 reader = new PEMParser(new FileReader(crtFile));
                 X509CertificateHolder certHolder = (X509CertificateHolder) reader.readObject();
                 reader.close();
@@ -85,27 +114,16 @@ public class SSLUtil {
                 clientKeyStore.setKeyEntry("private-key", key.getPrivate(), password.toCharArray(),
                         new Certificate[]{cert});
 
-                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(
+                keyManagerFactory = KeyManagerFactory.getInstance(
                         KeyManagerFactory.getDefaultAlgorithm());
                 keyManagerFactory.init(clientKeyStore, password.toCharArray());
             }
 
             /**
-             * CA certificate is used to authenticate server
-             */
-            KeyStore caKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            caKeyStore.load(null, null);
-            caKeyStore.setCertificateEntry("ca-certificate", caCert);
-
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(
-                    TrustManagerFactory.getDefaultAlgorithm());
-            trustManagerFactory.init(caKeyStore);
-
-            /**
              * Create SSL socket factory
              */
             SSLContext context = SSLContext.getInstance("TLSv1.2");
-            context.init(null, trustManagerFactory.getTrustManagers(), null);
+            context.init(keyManagerFactory!=null?keyManagerFactory.getKeyManagers():null, trustManagerFactory.getTrustManagers(), null);
 
             /**
              * Return the newly created socket factory object
