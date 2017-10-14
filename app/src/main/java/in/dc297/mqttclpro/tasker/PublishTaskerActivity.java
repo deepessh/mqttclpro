@@ -20,6 +20,7 @@ import java.util.ArrayList;
 
 import in.dc297.mqttclpro.DBHelper;
 import in.dc297.mqttclpro.R;
+import in.dc297.mqttclpro.Util;
 
 import static in.dc297.mqttclpro.tasker.Intent.EXTRA_BUNDLE;
 
@@ -41,6 +42,11 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
             topic = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
             message = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
             topicVar = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR);
+        }
+        if(Util.isNullOrBlanc(topic) || Util.isNullOrBlanc(message) || Util.isNullOrBlanc(topicVar)){
+            topic = getIntent().getStringExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
+            message = getIntent().getStringExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
+            topicVar = getIntent().getStringExtra(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR);
         }
         /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {

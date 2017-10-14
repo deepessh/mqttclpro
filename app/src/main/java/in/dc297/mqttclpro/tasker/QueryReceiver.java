@@ -52,18 +52,30 @@ public final class QueryReceiver extends BroadcastReceiver
             return;
         }
 
+        String topic = "";
+        String message = "";
+        String topicVar = "";
         Bundle taskerBundle = intent.getBundleExtra(EXTRA_BUNDLE);
+        if(taskerBundle!=null) {
+            topic = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
+            message = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
+            topicVar = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR);
+        }
+        if(Util.isNullOrBlanc(topic) || Util.isNullOrBlanc(message) || Util.isNullOrBlanc(topicVar)){//these cannot be null. So either we are supporting legacy events. Or there is some issue
+            topic = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
+            message = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
+            topicVar = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR);
+        }
 
-        final String topic = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
-        final String message = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
-        final String topicVar = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC_VAR);
-
+        if(Util.isNullOrBlanc(topic) || Util.isNullOrBlanc(message) || Util.isNullOrBlanc(topicVar)) {//if any of them is still null, we return failure
+            setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_UNKNOWN);
+            return;
+        }
         int messageID = TaskerPlugin.Event.retrievePassThroughMessageID(intent);
         if ( messageID == -1 ) {
             setResultCode(in.dc297.mqttclpro.tasker.Intent.RESULT_CONDITION_UNKNOWN);
             return;
         }
-        BundleScrubber.scrub(intent);
         Bundle publishedBundle = null;
         try {
             db = new DBHelper(context);
@@ -71,7 +83,7 @@ public final class QueryReceiver extends BroadcastReceiver
             if (messageCursor != null) {
                 messageCursor.moveToFirst();
                 while (!messageCursor.isAfterLast()) {
-                    publishedBundle = PluginBundleManager.generateBundle(context, messageCursor.getString(messageCursor.getColumnIndexOrThrow("message")), messageCursor.getString(messageCursor.getColumnIndexOrThrow("topic")));
+                    publishedBundle = PluginBundleManager.generateBundle(context, messageCursor.getString(messageCursor.getColumnIndexOrThrow("message")), messageCursor.getString(messageCursor.getColumnIndexOrThrow("display_topic")));
                     messageCursor.moveToNext();
                 }
             }

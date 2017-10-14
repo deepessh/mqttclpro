@@ -166,7 +166,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public Cursor getMessageForTaskerId(int messageId){
         SQLiteDatabase db = getReadableDatabase();
         try{
-            Cursor messageCursor = db.rawQuery("SELECT message, topic from messages where message_tasker_id="+messageId,null);
+            Cursor messageCursor = db.rawQuery("SELECT message, display_topic from messages where message_tasker_id="+messageId,null);
             return messageCursor;
         }
         catch(SQLException se){

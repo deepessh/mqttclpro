@@ -46,10 +46,25 @@ public class MyIntentService extends IntentService {
                 db = new DBHelper(getApplicationContext());
                 MQTTService mqttService = ((MQTTService.LocalBinder<MQTTService>) iBinder).getService();
                 Bundle taskerBundle = intent.getBundleExtra(EXTRA_BUNDLE);
-                String topic = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
-                String message = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
-                String qos = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_QOS);
-                boolean retained = taskerBundle.getBoolean(in.dc297.mqttclpro.tasker.Intent.EXTRA_RETAINED);
+                String topic = "";
+                String message = "";
+                String qos = "";
+                boolean retained = false;
+                if(taskerBundle!=null) {
+                    topic = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
+                    message = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
+                    qos = taskerBundle.getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_QOS);
+                    retained = taskerBundle.getBoolean(in.dc297.mqttclpro.tasker.Intent.EXTRA_RETAINED);
+                }
+                if(Util.isNullOrBlanc(topic) || Util.isNullOrBlanc(message) || Util.isNullOrBlanc(qos)){
+                    topic = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_TOPIC);
+                    message = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_MESSAGE);
+                    qos = intent.getExtras().getString(in.dc297.mqttclpro.tasker.Intent.EXTRA_QOS);
+                    retained = intent.getExtras().getBoolean(in.dc297.mqttclpro.tasker.Intent.EXTRA_RETAINED);
+                }
+                if(Util.isNullOrBlanc(topic) || Util.isNullOrBlanc(qos) || message == null){
+                    return;
+                }
                 try{
                     MqttTopic.validate(topic,false);
                 }
@@ -71,7 +86,7 @@ public class MyIntentService extends IntentService {
                 }
 
                 db.addTopic(topic,1,Integer.parseInt(qos));
-                long mid = db.addMessage(topic,message,1,Integer.parseInt(qos),false);
+                long mid = db.addMessage(topic,message,1,Integer.parseInt(qos),retained);
                 mqttService.publishMessage(topic,message,qos,mid,retained);
                 unbindService(this);
             }

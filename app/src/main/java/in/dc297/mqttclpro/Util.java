@@ -91,4 +91,9 @@ public class Util {
 
         return true;
     }
+
+    public static boolean isNullOrBlanc(String myString){
+        if(myString!=null && !"".equals(myString)) return false;
+        return true;
+    }
 }
