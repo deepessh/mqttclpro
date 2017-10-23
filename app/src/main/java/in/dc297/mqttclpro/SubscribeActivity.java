@@ -143,8 +143,8 @@ public class SubscribeActivity extends AppCompatActivity {
                     TextView topicTV = (TextView) view.findViewById(R.id.topic_tv);
                     TextView timestampTV = (TextView) view.findViewById(R.id.timestamp_tv);
                     if(topicTV!=null) {
-                        String topic = (String) topicTV.getText();
-                        String timestamp = (String) timestampTV.getText();
+                        String topic = topicTV.getText()!=null?topicTV.getText().toString():null;
+                        String timestamp = timestampTV.getText()!=null?timestampTV.getText().toString():null;
                         if(timestamp==null || timestamp.equals("")){
                             Toast.makeText(getApplicationContext(),"No messages received.",Toast.LENGTH_SHORT).show();
                             topicsLVAdapter.swapCursor(db.getTopics(0));
