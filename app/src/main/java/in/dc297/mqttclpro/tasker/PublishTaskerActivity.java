@@ -109,6 +109,16 @@ public class PublishTaskerActivity extends AbstractPluginActivity {
                 final String message = ((EditText) findViewById(R.id.editText2)).getText().toString();
                 final String topicVar =  ((EditText) findViewById(R.id.mqttTopicVar)).getText().toString();
 
+                if(Util.isNullOrBlanc(message)){
+                    Toast.makeText(getApplicationContext(), "Invalid message variable", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if(Util.isNullOrBlanc(topicVar)){
+                    Toast.makeText(getApplicationContext(), "Invalid topic variable", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 if (message.length() > 0 && topic.length() > 0 && topicVar.length() >0) {
                     final Intent resultIntent = new Intent();
                 /*
