@@ -280,7 +280,7 @@ public class MQTTClients {
                             return;
                         }
                     }
-                    setBrokerStatus(brokerEntity,"Failed to connect to " + uri);
+                    setBrokerStatus(brokerEntity,"Failed to connect to " + uri + " won't retry");
 
                 }
             });
