@@ -1,0 +1,27 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+xmlns:tools="http://schemas.android.com/tools"
+tools:context="in.dc297.mqttclpro.SubscribeActivity" >
+    <!--<item-->
+        <!--android:id="+@id/twofortyfouram_locale_ic_menu_dontsaveid"-->
+        <!--android:icon="@drawable/twofortyfouram_locale_ic_menu_dontsave"-->
+        <!--android:title="@string/twofortyfouram_locale_menu_dontsave"/>-->
+    <!--<item-->
+        <!--android:id="+@id/twofortyfouram_locale_menu_saveid"-->
+        <!--android:icon="@drawable/twofortyfouram_locale_ic_menu_save"-->
+        <!--android:title="@string/twofortyfouram_locale_menu_save"/>-->
+    <!--<item-->
+        <!--android:id="+@id/twofortyfouram_locale_menu_helpid"-->
+        <!--android:icon="@drawable/twofortyfouram_locale_ic_menu_help"-->
+        <!--android:title="@string/twofortyfouram_locale_menu_help"-->
+        <!--android:visible="false"/>-->
+    <item android:id="@+id/twofortyfouram_locale_menu_dontsave"
+        android:title="@string/twofortyfouram_locale_menu_dontsave"
+        android:icon="@drawable/twofortyfouram_locale_ic_menu_dontsave"
+        app:showAsAction="ifRoom" />
+    <item android:id="@+id/twofortyfouram_locale_menu_save"
+        android:title="@string/twofortyfouram_locale_menu_save"
+        android:icon="@drawable/twofortyfouram_locale_ic_menu_save"
+        app:showAsAction="ifRoom" />
+
+</menu>

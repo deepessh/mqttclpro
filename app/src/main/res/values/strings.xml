@@ -1,0 +1,192 @@
+<resources>
+    <string name="app_name">MQTT Client</string>
+    <string name="title_activity_brokers_list">Brokers</string>
+
+
+    <string-array name="donation_google_catalog_values">
+        <item>1 USD</item>
+        <item>3 USD</item>
+        <item>5 USD</item>
+        <item>13 USD</item>
+        <item>20 USD</item>
+    </string-array>
+
+    <string name="donation_paypal_item">Donation</string>
+
+    <string-array name="qos_array">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string name="qos_spinner_title">QOS</string>
+
+    <string name="ssl_switch_desc">Use SSL for connection</string>
+    <string name="ws_switch_desc">Use Websockets for connection</string>
+    <string name="pref_title_cleansession">Clean Session</string>
+    <string name="pref_title_ssl">Enable SSL</string>
+    <string name="pref_title_ws">Use Websockets</string>
+    <string name="pref_title_url">Host</string>
+    <string name="pref_title_clientid">Client ID</string>
+    <string name="pref_default_url"></string>
+    <string name="pref_title_retained">Retained</string>
+    <string name="pref_title_topic">Topic</string>
+    <string name="pref_title_message">Message</string>
+    <string name="pref_title_qos">QOS</string>
+    <string name="pref_default_port">1883</string>
+    <string name="pref_default_keepalive">1200</string>
+    <string name="pref_title_port">Port</string>
+    <string name="pref_title_keepalive">Keep-Alive Interval (seconds)</string>
+    <string name="pref_default_user"></string>
+    <string name="pref_title_user">Username</string>
+    <string name="pref_default_password" />
+    <string name="pref_title_password">Password</string>
+    <string name="pref_header_server">Server</string>
+    <string name="title_activity_message">Messages</string>
+    <string name="title_activity_publish">Publish Messages</string>
+    <string name="title_activity_published_topic">Published messages</string>
+    <string name="title_activity_publish_tasker">Message Published</string>
+    <string name="title_activity_action_edit">Publish MQTT Message</string>
+    <string name="topic">Topic</string>
+    <string name="message">Message</string>
+    <string name="message_tasker_var">varmessage</string>
+    <string name="topic_tasker_var">varmqtttopic</string>
+    <string name="plugin_name">MQTT Publish</string>
+    <string name="twofortyfouram_locale_menu_dontsave">Cancel</string>
+    <string name="twofortyfouram_locale_menu_save">Save</string>
+    <string name="twofortyfouram_locale_menu_help">Help</string>
+    <string name="twofortyfouram_locale_breadcrumb_format">%1$s%2$s%3$s</string>
+    <string name="twofortyfouram_locale_breadcrumb_separator"><![CDATA[\\u0020>\\u0020]]></string>
+    <string name="title_activity_donation">DonationActivity</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="pref_default_retry_interval">100</string>
+    <string name="pref_title_retry_interval">Retry Interval (seconds)</string>
+    <string name="retry_interval_desc">If the connection to the broker is lost, this value will be used as the interval between connection retries.</string>
+    <string name="cleansession_desc">Clean Session</string>
+    <string name="ca_crt">CA crt file path</string>
+    <string name="ca_crt_desc">Choose a crt file to be used as the CA</string>
+    <string name="ca_crt_default" />
+    <string name="client_crt">Client Certificate</string>
+    <string name="client_crt_desc">Choose a crt file to be used as client certificate</string>
+    <string name="client_crt_default" />
+    <string name="client_key">Client Key file</string>
+    <string name="client_key_desc">Choose a key file to be used as key for client certificate</string>
+    <string name="client_key_default" />
+    <string name="client_key_pwd_default" />
+    <string name="client_key_pwd">Client Key Password</string>
+    <string name="client_p12">Cliient .p12 file</string>
+    <string name="client_p12_desc">Choose a client p12 file having client.crt and client.key. If this is chosen, the client key and client crt chosen above will be ignored.</string>
+    <string name="client_p12_default" />
+    <string name="keepalive_desc">Keep Alive Interval in seconds</string>
+    <string name="password_desc">Enter your Password</string>
+    <string name="user_desc">Enter your Username</string>
+    <string name="port_desc">Broker port</string>
+    <string name="url_desc">Broker URL</string>
+    <string name="client_key_pwd_desc">Client Key/p12 Password</string>
+    <string name="title_activity_add_edit_brokers">Add Broker</string>
+
+    <!-- Strings related to Settings -->
+
+    <!-- Example General settings -->
+    <string name="pref_header_general">General</string>
+
+    <string name="pref_title_social_recommendations">Enable social recommendations</string>
+    <string name="pref_description_social_recommendations">Recommendations for people to contact
+        based on your message history
+    </string>
+
+    <string name="pref_title_display_name">Display name</string>
+    <string name="pref_default_display_name">John Smith</string>
+
+    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
+    <string-array name="pref_example_list_titles">
+        <item>Always</item>
+        <item>When possible</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="pref_example_list_values">
+        <item>1</item>
+        <item>0</item>
+        <item>-1</item>
+    </string-array>
+
+    <!-- Example settings for Data & Sync -->
+    <string name="pref_header_data_sync">Data &amp; sync</string>
+
+    <string name="pref_title_sync_frequency">Sync frequency</string>
+    <string-array name="pref_sync_frequency_titles">
+        <item>15 minutes</item>
+        <item>30 minutes</item>
+        <item>1 hour</item>
+        <item>3 hours</item>
+        <item>6 hours</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="pref_sync_frequency_values">
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+        <item>180</item>
+        <item>360</item>
+        <item>-1</item>
+    </string-array>
+
+    <string-array name="list_preference_entries">
+        <item>Entry 1</item>
+        <item>Entry 2</item>
+        <item>Entry 3</item>
+    </string-array>
+
+    <string-array name="list_preference_entry_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="multi_select_list_preference_default_value" />
+
+    <string name="pref_title_system_sync_settings">System sync settings</string>
+
+    <!-- Example settings for Notifications -->
+    <string name="pref_header_notifications">Notifications</string>
+
+    <string name="pref_title_new_message_notifications">New message notifications</string>
+
+    <string name="pref_title_ringtone">Ringtone</string>
+    <string name="pref_ringtone_silent">Silent</string>
+
+    <string name="pref_title_vibrate">Vibrate</string>
+    <string name="pref_title_lastwill_topic">Last-will topic</string>
+    <string name="pref_title_lastwill_message">Last-will Message</string>
+    <string name="pref_title_lastwill_qos">Last-will QOS</string>
+    <string name="pref_title_lastwill_retained">Last-will Retained</string>
+    <string name="enabled">Enabled</string>
+    <string name="nickname">Nick Name</string>
+    <string name="add">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+
+    <!--mqtt strings-->
+    <string name="timestamp">&lt;br/&gt; &lt;small&gt; %1$s &lt;/small&gt;</string>
+    <string name="connection_connected_to">Connected to</string>
+    <string name="connection_disconnected_from">Disconnected from</string>
+    <string name="connection_unknown_status">Unknown connection status to</string>
+    <string name="connection_connecting_to">Connecting to</string>
+    <string name="connection_disconnecting_from">Disconnecting from</string>
+    <string name="connection_error_connecting_to">An error occurred connecting to</string>
+    <string name="connection_clear">Clear</string>
+    <string name="subscription_new">New Subscription</string>
+    <string name="notification">%1$s has received %2$s on topic %3$s</string>
+    <string name="notifyTitle">MQTT Message Received</string>
+    <string name="toast_sub_success">Subscribed to %1$s</string>
+    <string name="toast_disconnected">Disconnected</string>
+    <string name="toast_pub_failed">Failed to publish message: %1$s to topic: %2$s</string>
+    <string name="toast_sub_failed">Failed to subscribe to %1$s</string>
+    <string name="connection_lost">%1$s has lost connection to %2$s</string>
+    <string name="toast_pub_success">Published message: %1$s to topic: %2$s</string>
+    <string name="broker">Broker</string>
+    <string name="message_arrived">Message Arrived</string>
+    <string name="action_donate">Donate</string>
+    <string name="action_settings">Settings</string>
+
+</resources>

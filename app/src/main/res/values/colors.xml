@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#ff521253</color>
+    <color name="colorPrimaryDark">#ff310a31</color>
+    <color name="colorAccent">#ff744175</color>
+    <color name="unpubmessage">#77FF0000</color>
+</resources>

@@ -1,0 +1,63 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+    defaultConfig {
+        applicationId "in.dc297.mqttclpro"
+        minSdkVersion 14
+        targetSdkVersion 25
+        versionCode 26
+        versionName "4.0.0b"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    dataBinding {
+        enabled = true
+    }
+
+    lintOptions {
+        warning 'InvalidPackage'
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+
+    annotationProcessor "io.requery:requery-processor:${rootProject.ext.requeryVersion}"
+    compile "net.zetetic:android-database-sqlcipher:${rootProject.ext.sqlCipherVersion}"
+    compile "io.requery:requery:${rootProject.ext.requeryVersion}"
+    compile "io.requery:requery-android:${rootProject.ext.requeryVersion}" // for android
+
+    compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:${rootProject.ext.clientVersion}"
+    compile "org.eclipse.paho:org.eclipse.paho.android.service:${rootProject.ext.serviceVersion}"
+
+    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.56'
+
+
+    compile 'io.reactivex.rxjava2:rxjava:2.0.1'
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.android.support:design:25.3.1'
+    compile 'com.android.support:support-v4:25.3.1'
+    compile 'com.android.support:support-vector-drawable:25.3.1'
+    compile 'com.github.angads25:filepicker:1.1.1'
+    compile 'org.sufficientlysecure:donations:2.5'
+    testCompile 'junit:junit:4.12'
+}

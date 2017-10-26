@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable name="message" type="in.dc297.mqttclpro.entity.Message" />
+    </data>
+    <RelativeLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:background="@drawable/bottom_shadow">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="@{message.payload}"
+            android:id="@+id/mmessage_tv"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
+            android:textColor="#000"
+            android:layout_marginBottom="20dp"
+            android:layout_alignParentLeft="true" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="@{message.displayTopic}"
+            android:id="@+id/mtopic_tv"
+            android:layout_below="@+id/mmessage_tv"
+            android:layout_alignParentStart="true"
+            android:textColor="#000"
+            android:layout_alignParentLeft="true" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text='@{message.retained?"Retained":"Not Retained"}'
+            android:layout_alignBaseline="@+id/mtimestamp_tv"
+            android:layout_alignBottom="@+id/mtimestamp_tv"
+            android:id="@+id/mretained_tv"
+            android:textColor="#000"
+            android:layout_below="@id/mtopic_tv"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text='@{String.valueOf(message.timeStamp==null?"":message.timeStamp)}'
+            android:id="@+id/mtimestamp_tv"
+            android:layout_below="@+id/mtopic_tv"
+            android:layout_alignParentEnd="true"
+            android:textColor="#000"
+            android:layout_alignParentRight="true" />
+
+    </RelativeLayout>
+</layout>

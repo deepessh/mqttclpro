@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android" android:padding="10dp">
+
+    <data>
+        <variable name="topic" type="in.dc297.mqttclpro.entity.Topic" />
+    </data>
+    <RelativeLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="@drawable/bottom_shadow">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@{topic.name}"
+            android:id="@+id/topic_tv"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:maxEms="9"
+            android:singleLine="true"
+            android:textColor="#000"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@{String.valueOf(topic.unreadCount)}"
+            android:id="@+id/message_count"
+            android:background="@drawable/circular_bg"
+            android:singleLine="true"
+            android:textColor="#ffffff"
+            android:visibility="@{topic.countVisibility}"
+            android:layout_alignEnd="@+id/timestamp_tv"
+            android:layout_below="@+id/topic_tv"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text='@{topic.latestMessage.payload==null?"No Message Received":topic.latestMessage.payload}'
+            android:id="@+id/message_tv"
+            android:ellipsize="end"
+            android:maxEms="15"
+            android:singleLine="true"
+            android:layout_alignBottom="@+id/message_count"
+            android:layout_alignStart="@+id/topic_tv"
+            android:textColor="#000"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text='@{String.valueOf(topic.latestMessage.timeStamp==null?"":topic.latestMessage.timeStamp)}'
+            android:id="@+id/timestamp_tv"
+            android:singleLine="true"
+            android:layout_alignTop="@+id/topic_tv"
+            android:layout_alignParentEnd="true"
+            android:textColor="#000"/>
+    </RelativeLayout>
+</layout>

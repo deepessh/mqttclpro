@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="in.dc297.mqttclpro">
+
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- <uses-permission android:name="android.permission.READ_PHONE_STATE" /> -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:name=".activity.MQTTClientApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".activity.BrokersListActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".activity.AddEditBrokersActivity"
+            android:label="@string/title_activity_add_edit_brokers"
+            android:parentActivityName=".activity.BrokersListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="in.dc297.mqttclpro.activity.BrokersListActivity" />
+        </activity>
+        <activity android:name=".activity.SubscribedTopicsActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="in.dc297.mqttclpro.activity.BrokersListActivity" />
+        </activity>
+        <activity android:name=".activity.PublishActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="in.dc297.mqttclpro.activity.SubscribedTopicsActivity" />
+        </activity>
+        <activity android:name=".activity.MessageActivity" />
+
+        <service
+            android:name="org.eclipse.paho.android.service.MqttService"
+            android:enabled="true"
+            android:exported="true" />
+        <!-- tasker message arrived start -->
+        <activity
+            android:name=".tasker.activity.ConfigureTaskerEventActivity"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/message_arrived">
+            <intent-filter>
+                <action android:name="net.dinglisch.android.tasker.ACTION_EDIT_EVENT" />
+            </intent-filter>
+        </activity>
+
+        <receiver
+            android:name=".tasker.receivers.QueryReceiver"
+            android:exported="true"
+            android:process=":background">
+
+            <!-- this Intent filter allows the plug-in to discovered by Locale and be queried -->
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.QUERY_CONDITION" />
+            </intent-filter>
+        </receiver>
+        <!-- tasker message arrived end -->
+        <!-- tasker message publish start -->
+        <activity
+            android:name=".tasker.activity.ActionEditActivity"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/title_activity_action_edit"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />
+            </intent-filter>
+        </activity>
+
+        <receiver
+            android:name=".tasker.receivers.FireReceiver"
+            android:exported="true"
+            android:process=":background">
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING" />
+            </intent-filter>
+        </receiver>
+        <!-- tasker message publish end -->
+
+
+        <!-- tasker initiate action helper service -->
+        <service
+            android:name=".tasker.services.MyIntentService"
+            android:exported="false" />
+
+        <receiver android:name=".receivers.BootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".services.MyMqttService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity android:name=".activity.DonationActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="in.dc297.mqttclpro.activity.BrokersListActivity" />
+        </activity>
+    </application>
+
+</manifest>
