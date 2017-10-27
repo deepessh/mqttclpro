@@ -7,12 +7,17 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Locale;
 
+import in.dc297.mqttclpro.R;
 import in.dc297.mqttclpro.activity.MQTTClientApplication;
+import in.dc297.mqttclpro.entity.BrokerEntity;
 import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.entity.Topic;
+import in.dc297.mqttclpro.helpers.ComparatorHelper;
 import in.dc297.mqttclpro.mqtt.internal.Util;
 import in.dc297.mqttclpro.tasker.Constants;
 import in.dc297.mqttclpro.tasker.PluginBundleManager;
@@ -48,12 +53,21 @@ public class QueryReceiver extends BroadcastReceiver {
         String topicVar = "";
         long brokerId = 0;
         int taskerMessageId = 0;
+        int topicComparator = 0;
+        int messageComparator = 0;
+        String topicToCompare = "";
+        String messageToCompare = "";
+
         Bundle taskerBundle = intent.getBundleExtra(EXTRA_BUNDLE);
         if(taskerBundle!=null) {
             topic = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_TOPIC);
             message = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_MESSAGE);
             topicVar = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_TOPIC_VAR);
             brokerId = taskerBundle.getLong(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BROKER_ID);
+            topicComparator = taskerBundle.getInt(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_TOPIC_COMPARATOR);
+            messageComparator = taskerBundle.getInt(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_MESSAGE_COMPARATOR);
+            topicToCompare = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_TOPIC_COMPARE_TO);
+            messageToCompare = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_MESSAGE_COMPARE_TO);
         }
 
         if(TextUtils.isEmpty(topic) || TextUtils.isEmpty(message) || TextUtils.isEmpty(topicVar) || brokerId==0) {//if any of them is still null, we return failure
@@ -67,6 +81,9 @@ public class QueryReceiver extends BroadcastReceiver {
             setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNKNOWN);
             return;
         }
+
+        Log.i(QueryReceiver.class.getName(),"Received query with message ID" + taskerMessageId);
+
         data = ((MQTTClientApplication)context.getApplicationContext()).getData();
         if(data==null){
             setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNKNOWN);
@@ -100,6 +117,22 @@ public class QueryReceiver extends BroadcastReceiver {
                 return;
             }
 
+            String[] comparators = context.getResources().getStringArray(R.array.comparators_array_method);
+
+            if(!TextUtils.isEmpty(topicToCompare)){
+                if(!(Boolean)getCustomValue(comparators[topicComparator],publishedTopic,topicToCompare)){
+                    setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNSATISFIED);
+                    return;
+                }
+            }
+
+            if(!TextUtils.isEmpty(messageToCompare)){
+                if(!(Boolean)getCustomValue(comparators[messageComparator],publishedMessage,messageToCompare)){
+                    setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNSATISFIED);
+                    return;
+                }
+            }
+
             setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_SATISFIED);
             if (TaskerPlugin.Setting.hostSupportsVariableReturn(intent.getExtras())) {
                 Bundle vars = new Bundle();
@@ -118,5 +151,24 @@ public class QueryReceiver extends BroadcastReceiver {
         }
 
         setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_SATISFIED);
+    }
+
+    private Object getCustomValue(String methodName, String a, String b){
+        Method[] methods = ComparatorHelper.class.getMethods();
+
+        Object value = null;
+        for(Method method:methods){
+            if(method.getName().equals(methodName)){
+                try {
+                    value = method.invoke(new ComparatorHelper(), a, b);
+                    break;
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return value;
     }
 }

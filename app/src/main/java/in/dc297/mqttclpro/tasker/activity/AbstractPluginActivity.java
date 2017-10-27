@@ -32,7 +32,7 @@ import in.dc297.mqttclpro.tasker.Constants;
 public abstract class AbstractPluginActivity extends AppCompatActivity
 {
 
-    private boolean mIsCancelled = false;
+    boolean mIsCancelled = false;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState)

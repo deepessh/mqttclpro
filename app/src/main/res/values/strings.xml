@@ -19,6 +19,28 @@
         <item>2</item>
     </string-array>
 
+    <string-array name="comparators_array">
+        <item>Equals</item>
+        <item>Doesn\'t Equal</item>
+        <item>Matches Regex</item>
+        <item>Doesn\'t Match Regex</item>
+        <item>Maths: Less Than</item>
+        <item>Maths: Greater Than</item>
+        <item>Maths: Equals</item>
+        <item>Maths: Is\'t Equal To</item>
+    </string-array>
+
+    <string-array name="comparators_array_method">
+        <item>eq</item>
+        <item>neq</item>
+        <item>mR</item>
+        <item>nmR</item>
+        <item>mlt</item>
+        <item>mgt</item>
+        <item>meq</item>
+        <item>mneq</item>
+    </string-array>
+
     <string name="qos_spinner_title">QOS</string>
 
     <string name="ssl_switch_desc">Use SSL for connection</string>
@@ -188,5 +210,7 @@
     <string name="message_arrived">Message Arrived</string>
     <string name="action_donate">Donate</string>
     <string name="action_settings">Settings</string>
+    <string name="equals">=</string>
+    <string name="comparatorDivider">Optional settings below (for non-tasker users)</string>
 
 </resources>

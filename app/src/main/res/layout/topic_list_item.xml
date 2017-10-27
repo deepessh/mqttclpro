@@ -20,7 +20,8 @@
             android:singleLine="true"
             android:textColor="#000"
             android:layout_alignParentTop="true"
-            android:layout_alignParentStart="true"/>
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -34,7 +35,7 @@
             android:visibility="@{topic.countVisibility}"
             android:layout_alignEnd="@+id/timestamp_tv"
             android:layout_below="@+id/topic_tv"
-            />
+            android:layout_alignRight="@+id/timestamp_tv" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -47,7 +48,8 @@
             android:singleLine="true"
             android:layout_alignBottom="@+id/message_count"
             android:layout_alignStart="@+id/topic_tv"
-            android:textColor="#000"/>
+            android:textColor="#000"
+            android:layout_alignLeft="@+id/topic_tv" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -58,6 +60,7 @@
             android:singleLine="true"
             android:layout_alignTop="@+id/topic_tv"
             android:layout_alignParentEnd="true"
-            android:textColor="#000"/>
+            android:textColor="#000"
+            android:layout_alignParentRight="true" />
     </RelativeLayout>
 </layout>

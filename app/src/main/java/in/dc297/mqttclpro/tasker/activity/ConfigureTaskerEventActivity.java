@@ -5,9 +5,11 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -45,11 +47,14 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
             setTitle(BreadCrumber.generateBreadcrumb(getApplicationContext(), getIntent(),
                     getString(R.string.message_arrived)));
         }
-
         String topic = "";
         String message = "";
         String topicVar = "";
         long brokerId = 0;
+        int topicComparator = 0;
+        int messageComparator = 0;
+        String topicToCompare = "";
+        String messageToCompare = "";
 
         Bundle taskerBundle = getIntent().getBundleExtra(EXTRA_BUNDLE);
         if(taskerBundle!=null) {
@@ -57,6 +62,10 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
             topic = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_TOPIC);
             message = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_MESSAGE);
             topicVar = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_TOPIC_VAR);
+            topicComparator = taskerBundle.getInt(Intent.EXTRA_TOPIC_COMPARATOR);
+            messageComparator = taskerBundle.getInt(Intent.EXTRA_MESSAGE_COMPARATOR);
+            topicToCompare = taskerBundle.getString(Intent.EXTRA_TOPIC_COMPARE_TO);
+            messageToCompare = taskerBundle.getString(Intent.EXTRA_MESSAGE_COMPARE_TO);
         }
 
         final String topicComp = topic;
@@ -66,9 +75,62 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
         brokerEntityList = data.select(BrokerEntity.class).get().toList();
         if(brokerEntityList.size()<=0){
             Toast.makeText(getApplicationContext(),"Please add at least 1 broker before configuring tasker event.",Toast.LENGTH_SHORT).show();
+            this.mIsCancelled = true;
             finish();
             return;
         }
+        //comparators stuff starts
+        final Spinner topicComparatorSpinner = (Spinner)findViewById(R.id.topicComparatorSpinner);
+        ArrayAdapter dataAdapterTopicComparator = ArrayAdapter.createFromResource(this, R.array.comparators_array, android.R.layout.simple_spinner_item);
+        dataAdapterTopicComparator.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        final Button topicComparatorButton = (Button) findViewById(R.id.topicComparatorButton);
+        topicComparatorButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                topicComparatorSpinner.performClick();
+            }
+        });
+
+        topicComparatorSpinner.setAdapter(dataAdapterTopicComparator);
+        final String[] comparatorValues = getResources().getStringArray(R.array.comparators_array_method);
+        topicComparatorSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                topicComparatorButton.setText(comparatorValues[position]);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Log.i(ConfigureTaskerEventActivity.class.getName(),"Nothing selected");
+            }
+        });
+
+        final Spinner messageComparatorSpinner = (Spinner)findViewById(R.id.messageComparatorSpinner);
+        ArrayAdapter dataAdapterMessageComparator = ArrayAdapter.createFromResource(this, R.array.comparators_array, android.R.layout.simple_spinner_item);
+        dataAdapterMessageComparator.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        final Button messageComparatorButton = (Button) findViewById(R.id.messageComparatorButton);
+        messageComparatorButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                messageComparatorSpinner.performClick();
+            }
+        });
+
+        messageComparatorSpinner.setAdapter(dataAdapterMessageComparator);
+        messageComparatorSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                messageComparatorButton.setText(comparatorValues[position]);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Log.i(ConfigureTaskerEventActivity.class.getName(),"Nothing selected");
+            }
+        });
+        //comparators stuff end
         Spinner brokerSpinner = (Spinner) findViewById(R.id.brokerSpinner);
 
         String[] brokers = new String[brokerEntityList.size()];
@@ -159,6 +221,10 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
             if(brokerId!=0){
                 brokerSpinner.setSelection(selIndex_b);
             }
+            topicComparatorSpinner.setSelection(topicComparator);
+            messageComparatorSpinner.setSelection(messageComparator);
+            ((EditText) findViewById(R.id.topicComparatorEditText)).setText(topicToCompare);
+            ((EditText) findViewById(R.id.messageComparatorEditText)).setText(messageToCompare);
             /*if(topic!=null && !"".equals(topic)) {
                 topicSpinner.setSelection(selIndex_t);
             }*/
@@ -178,12 +244,19 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
         {
             Spinner topicSpinner = (Spinner) findViewById(R.id.editText);
             Spinner brokerSpinner = (Spinner) findViewById(R.id.brokerSpinner);
+            Spinner topicComparatorSpinner = (Spinner) findViewById(R.id.topicComparatorSpinner);
+            Spinner messageComparatorSpinner = (Spinner) findViewById(R.id.messageComparatorSpinner);
+
             if(topicSpinner!=null && topicSpinner.getSelectedItem()!=null && brokerSpinner!=null && brokerSpinner.getSelectedItem()!=null) {
                 final String topic = topicSpinner.getSelectedItem().toString();
                 final String message = ((EditText) findViewById(R.id.editText2)).getText().toString();
                 final String topicVar =  ((EditText) findViewById(R.id.mqttTopicVar)).getText().toString();
                 final String brokerNickName = brokerSpinner.getSelectedItem().toString();
                 final long brokerId = brokerEntityList.get(brokerSpinner.getSelectedItemPosition()).getId();
+                final String topicToCompareTo = ((EditText)findViewById(R.id.topicComparatorEditText)).getText().toString();
+                final String messageToCompareTo = ((EditText)findViewById(R.id.messageComparatorEditText)).getText().toString();
+                final String topicCompBlurb = TextUtils.isEmpty(topicToCompareTo)?"":"Topic " + topicComparatorSpinner.getSelectedItem() + " " + topicToCompareTo;
+                final String messageCompBlurb = TextUtils.isEmpty(topicToCompareTo)?"":"Message " + messageComparatorSpinner.getSelectedItem() + " " + messageToCompareTo;
 
                 if(TextUtils.isEmpty(topic)){
                     Toast.makeText(getApplicationContext(), "Invalid topic", Toast.LENGTH_SHORT).show();
@@ -215,8 +288,12 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
                     taskerBundle.putString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_MESSAGE, message);
                     taskerBundle.putString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_TOPIC_VAR,topicVar);
                     taskerBundle.putLong(Intent.EXTRA_BROKER_ID, brokerId);
+                    taskerBundle.putInt(Intent.EXTRA_TOPIC_COMPARATOR,topicComparatorSpinner.getSelectedItemPosition());
+                    taskerBundle.putInt(Intent.EXTRA_MESSAGE_COMPARATOR,messageComparatorSpinner.getSelectedItemPosition());
+                    taskerBundle.putString(Intent.EXTRA_TOPIC_COMPARE_TO,topicToCompareTo);
+                    taskerBundle.putString(Intent.EXTRA_MESSAGE_COMPARE_TO,messageToCompareTo);
 
-                    final String blurb = generateBlurb(getApplicationContext(), brokerNickName + " : " + topic + " : " + message + " : " + topicVar);
+                    final String blurb = generateBlurb(getApplicationContext(), brokerNickName + " : " + topic + " : " + message + " : " + topicVar + " : " + topicCompBlurb + " : " + messageCompBlurb);
                     resultIntent.putExtra(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_STRING_BLURB, blurb);
 
                     resultIntent.putExtra(EXTRA_BUNDLE,taskerBundle);

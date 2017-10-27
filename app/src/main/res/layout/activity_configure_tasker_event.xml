@@ -5,8 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".tasker.activity.ConfigureTaskerEventActivity">
-
+    tools:context=".tasker.activity.ConfigureTaskerEventActivity"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    >
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
@@ -32,7 +36,6 @@
                 android:layout_width="350dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/brokerSpinner"
-
                 android:layout_alignParentEnd="true"
                 android:hint="@string/topic"
                 android:layout_alignParentRight="true" />
@@ -76,10 +79,119 @@
             android:hint="@string/topic_tasker_var"
             android:layout_alignParentLeft="true" />
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:id="@+id/divider"
+            android:layout_below="@id/mqttTopicVar"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:id="@+id/tvText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_marginLeft="3dp"
+                android:layout_marginRight="3dp"
+                android:text="@string/comparatorDivider"
+                android:textColor="#222222"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="2dp"
+                android:layout_toLeftOf="@id/tvText"
+                android:background="@color/colorPrimary"
+                />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="2dp"
+                android:layout_toRightOf="@id/tvText"
+                android:background="@color/colorPrimary"
+                />
+
+        </RelativeLayout>
+        <LinearLayout
+            android:id="@+id/topicComparatorLL"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/divider"
+            android:weightSum="1">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5pt"
+                android:text="@string/topic"
+                android:textAppearance="@style/TextAppearance.AppCompat" />
+
+            <Button
+                android:id="@+id/topicComparatorButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <EditText
+                android:id="@+id/topicComparatorEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:hint="testtopic"
+                android:maxLines="1" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/topicComparatorLL"
+            android:weightSum="1"
+            android:id="@+id/messageComparatorLL"
+            >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/message"
+                android:textAppearance="@style/TextAppearance.AppCompat"
+                android:padding="5pt" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/messageComparatorButton"/>
+
+            <EditText
+                android:id="@+id/messageComparatorEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:hint="testmessage"
+                android:maxLines="1"/>
+        </LinearLayout>
+        <Spinner
+            android:id="@+id/topicComparatorSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:hint="@string/topic"
+            android:spinnerMode="dialog"
+            android:visibility="invisible"/>
+        <Spinner
+            android:id="@+id/messageComparatorSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:hint="@string/topic"
+            android:spinnerMode="dialog"
+            android:visibility="invisible"/>
 
     </RelativeLayout>
 
-
+    </ScrollView>
     <!--android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"

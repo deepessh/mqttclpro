@@ -192,6 +192,10 @@ public final class Intent
     public static final String EXTRA_QOS = "in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_QOS"; //$NON-NLS-1$
     public static final String EXTRA_RETAINED = "in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_RETAINED"; //$NON-NLS-1$
     public static final String EXTRA_BUNDLE = "com.twofortyfouram.locale.intent.extra.BUNDLE";
+    public static final String EXTRA_TOPIC_COMPARATOR = "com.twofortyfouram.locale.intent.extra.EXTRA_TOPIC_COMPARATOR";
+    public static final String EXTRA_MESSAGE_COMPARATOR = "com.twofortyfouram.locale.intent.extra.EXTRA_MESSAGE_COMPARATOR";
+    public static final String EXTRA_MESSAGE_COMPARE_TO = "com.twofortyfouram.locale.intent.extra.EXTRA_MESSAGE_COMPARE_TO";
+    public static final String EXTRA_TOPIC_COMPARE_TO = "com.twofortyfouram.locale.intent.extra.EXTRA_TOPIC_COMPARE_TO";
 
     /**
      * Type: {@code String}.

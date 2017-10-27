@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="max_blurb_length">100</integer>
+    <integer name="max_blurb_length">200</integer>
 </resources>
