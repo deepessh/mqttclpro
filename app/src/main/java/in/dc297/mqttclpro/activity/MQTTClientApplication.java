@@ -29,7 +29,7 @@ public class MQTTClientApplication extends Application {
     public ReactiveEntityStore<Persistable> getData() {
         if (dataStore == null) {
             // override onUpgrade to handle migrating to a new version
-            DatabaseSource source = new DatabaseSource(this, Models.DEFAULT,1);
+            DatabaseSource source = new DatabaseSource(this, Models.DEFAULT,2);
             if (BuildConfig.DEBUG) {
                 // use this in development mode to drop and recreate the tables on every upgrade
                 source.setTableCreationMode(TableCreationMode.DROP_CREATE);

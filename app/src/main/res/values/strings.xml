@@ -212,5 +212,8 @@
     <string name="action_settings">Settings</string>
     <string name="equals">=</string>
     <string name="comparatorDivider">Optional settings below (for non-tasker users)</string>
+    <string name="connection_lost_title">Connection Lost</string>
+    <string name="connect_tasker_msg">If disabled, the broker will be enabled and connection attempt will be made. If the broker is already enabled, a reconnect attempt would be made.</string>
+    <string name="title_activity_connect_tasker">Connect to broker</string>
 
 </resources>

@@ -31,6 +31,7 @@ import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.entity.TopicEntity;
 import in.dc297.mqttclpro.tasker.PluginBundleManager;
 import in.dc297.mqttclpro.tasker.activity.ConfigureTaskerEventActivity;
+import in.dc297.mqttclpro.tasker.activity.ConnectionLostConfigActivity;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -53,6 +54,10 @@ public class MQTTClients {
     protected static final Intent INTENT_REQUEST_REQUERY =
             new Intent(in.dc297.mqttclpro.tasker.activity.Intent.ACTION_REQUEST_QUERY).putExtra(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_ACTIVITY,
                     ConfigureTaskerEventActivity.class.getName());
+
+    protected static final Intent INTENT_REQUEST_REQUERY_CONN_LOST =
+            new Intent(in.dc297.mqttclpro.tasker.activity.Intent.ACTION_REQUEST_QUERY).putExtra(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_ACTIVITY,
+                    ConnectionLostConfigActivity.class.getName());
 
     /**
      * List of clients
@@ -163,7 +168,13 @@ public class MQTTClients {
 
             @Override
             public void connectionLost(Throwable cause) {
+                TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
+                int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST,PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
+                brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
+                data.update(brokerEntity).blockingGet();
                 setBrokerStatus(brokerEntity,"Connection lost from "+ uri);
+                application.sendBroadcast(INTENT_REQUEST_REQUERY_CONN_LOST);
+                Log.i(MQTTClients.class.getName(),"broadcasting connection lost with tasker id: " + taskerPassthroughMessageId);
             }
 
             @Override
@@ -280,7 +291,13 @@ public class MQTTClients {
                             return;
                         }
                     }
+                    TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
+                    int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST,PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
+                    brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
+                    data.update(brokerEntity).blockingGet();
                     setBrokerStatus(brokerEntity,"Failed to connect to " + uri + " won't retry");
+                    application.sendBroadcast(INTENT_REQUEST_REQUERY_CONN_LOST);
+                    Log.i(MQTTClients.class.getName(),"broadcasting connection lost with tasker id: " + taskerPassthroughMessageId);
 
                 }
             });
@@ -423,5 +440,15 @@ public class MQTTClients {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void doConnect(BrokerEntity brokerEntity){
+        if(clients.get(brokerEntity.getId())!=null){
+            MqttAndroidClient mqttAndroidClient = clients.get(brokerEntity.getId());
+            mqttAndroidClient.close();
+            clients.remove(brokerEntity.getId());
+        }
+        clients.put(brokerEntity.getId(),fromEntity(brokerEntity));
+
     }
 }

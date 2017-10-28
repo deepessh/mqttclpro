@@ -19,7 +19,6 @@ import android.os.Parcelable;
  */
 public final class Intent
 {
-
     /**
      * Private constructor prevents instantiation.
      * 
@@ -171,6 +170,8 @@ public final class Intent
 
     public static final String MQTT_PUBLISH_ACTION = "in.dc297.mqttclpro.tasker.activity.Intent.MQTT_PUBLISH_ACTION";
 
+    public static final String MQTT_CONNECT_ACTION = "in.dc297.mqttclpro.tasker.activity.Intent.MQTT_CONNECT_ACTION";
+
     /**
      * Type: {@code Bundle}.
      * <p>
@@ -196,6 +197,11 @@ public final class Intent
     public static final String EXTRA_MESSAGE_COMPARATOR = "com.twofortyfouram.locale.intent.extra.EXTRA_MESSAGE_COMPARATOR";
     public static final String EXTRA_MESSAGE_COMPARE_TO = "com.twofortyfouram.locale.intent.extra.EXTRA_MESSAGE_COMPARE_TO";
     public static final String EXTRA_TOPIC_COMPARE_TO = "com.twofortyfouram.locale.intent.extra.EXTRA_TOPIC_COMPARE_TO";
+    public static final String QUERY_OPERATION = "in.dc297.mqttclpro.tasker.activity.intent.QUERY_OPERATION";
+    public static final String ACTION_OPERATION = "in.dc297.mqttclpro.tasker.activity.intent.ACTION_OPERATION";
+    public static final String MESSAGE_ARRIVED = "in.dc297.mqttclpro.tasker.activity.intent.MESSAGE_ARRIVED";
+    public static final String CONNECTION_LOST = "in.dc297.mqttclpro.tasker.activity.intent.CONNECTION_LOST";
+
 
     /**
      * Type: {@code String}.

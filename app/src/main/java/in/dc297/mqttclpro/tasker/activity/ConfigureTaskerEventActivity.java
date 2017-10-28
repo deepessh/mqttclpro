@@ -292,6 +292,7 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
                     taskerBundle.putInt(Intent.EXTRA_MESSAGE_COMPARATOR,messageComparatorSpinner.getSelectedItemPosition());
                     taskerBundle.putString(Intent.EXTRA_TOPIC_COMPARE_TO,topicToCompareTo);
                     taskerBundle.putString(Intent.EXTRA_MESSAGE_COMPARE_TO,messageToCompareTo);
+                    taskerBundle.putString(Intent.QUERY_OPERATION,Intent.MESSAGE_ARRIVED);
 
                     final String blurb = generateBlurb(getApplicationContext(), brokerNickName + " : " + topic + " : " + message + " : " + topicVar + " : " + topicCompBlurb + " : " + messageCompBlurb);
                     resultIntent.putExtra(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_STRING_BLURB, blurb);

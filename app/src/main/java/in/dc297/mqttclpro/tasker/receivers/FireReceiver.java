@@ -15,12 +15,14 @@ package in.dc297.mqttclpro.tasker.receivers;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 
 import java.util.Locale;
 
 import in.dc297.mqttclpro.tasker.Constants;
 
+import static in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BUNDLE;
 import static in.dc297.mqttclpro.tasker.activity.Intent.MQTT_PUBLISH_ACTION;
 
 public final class FireReceiver extends BroadcastReceiver
@@ -47,7 +49,13 @@ public final class FireReceiver extends BroadcastReceiver
         Intent newIntent = new Intent(context, in.dc297.mqttclpro.tasker.services.MyIntentService.class);
         newIntent.putExtras(intent);
 
-        newIntent.setAction(MQTT_PUBLISH_ACTION);
-        context.startService(newIntent);
+        Bundle taskerBundle = intent.getBundleExtra(EXTRA_BUNDLE);
+
+        String intentAction = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.ACTION_OPERATION);
+
+        if(intentAction!=null) {
+            newIntent.setAction(intentAction);
+            context.startService(newIntent);
+        }
     }
 }

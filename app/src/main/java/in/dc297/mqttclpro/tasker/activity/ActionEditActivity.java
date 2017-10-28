@@ -43,6 +43,7 @@ public class ActionEditActivity extends AbstractPluginActivity {
         final String qos = taskerBundle!=null?taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_QOS):"";
         final Long brokerId = taskerBundle!=null?taskerBundle.getLong(Intent.EXTRA_BROKER_ID):0;
 
+
         final Spinner qosSpinner = (Spinner) findViewById(R.id.qos_spinner);
         Switch retainedSwitch = (Switch) findViewById(R.id.message_retained);
 
@@ -103,7 +104,8 @@ public class ActionEditActivity extends AbstractPluginActivity {
             String qos = ((Spinner) findViewById(R.id.qos_spinner)).getSelectedItem().toString();
             final String topic = ((EditText) findViewById(R.id.editText)).getText().toString();
             final String message = ((EditText) findViewById(R.id.editText2)).getText().toString();
-            final Long brokerId = brokerEntityList.get(((Spinner)findViewById(R.id.brokerSpinner)).getSelectedItemPosition()).getId();
+            final int brokerPosition = ((Spinner)findViewById(R.id.brokerSpinner)).getSelectedItemPosition();
+            final Long brokerId = brokerEntityList.size()>=brokerPosition?brokerEntityList.get(brokerPosition).getId():0;
             final String brokerString = ((Spinner)findViewById(R.id.brokerSpinner)).getSelectedItem().toString();
 
             try{
@@ -140,6 +142,7 @@ public class ActionEditActivity extends AbstractPluginActivity {
                 taskerBundle.putBoolean(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_RETAINED,retained);
                 taskerBundle.putString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_QOS,qos);
                 taskerBundle.putLong(Intent.EXTRA_BROKER_ID, brokerId);
+                taskerBundle.putString(Intent.ACTION_OPERATION,Intent.MQTT_PUBLISH_ACTION);
 
                 //replace tasker variables
                 resultIntent.putExtra(TaskerPlugin.Setting.BUNDLE_KEY_VARIABLE_REPLACE_STRINGS,in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_TOPIC+" "+in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_MESSAGE);

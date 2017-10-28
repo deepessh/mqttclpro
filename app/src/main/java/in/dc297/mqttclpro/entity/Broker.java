@@ -137,4 +137,7 @@ public interface Broker extends Observable, Parcelable, Persistable{
     @Bindable
     @Column(value = "Initializing")
     String getStatus();
+
+    @Bindable
+    int getTaskerPassThroughId();
 }

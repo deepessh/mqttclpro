@@ -12,6 +12,7 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 import java.sql.Timestamp;
 import java.util.Iterator;
+import java.util.List;
 
 import in.dc297.mqttclpro.activity.MQTTClientApplication;
 import in.dc297.mqttclpro.activity.PublishActivity;
@@ -25,8 +26,10 @@ import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
 import io.requery.query.Result;
 import io.requery.reactivex.ReactiveEntityStore;
+import tasker.TaskerPlugin;
 
 import static in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BUNDLE;
+import static in.dc297.mqttclpro.tasker.activity.Intent.MQTT_CONNECT_ACTION;
 import static in.dc297.mqttclpro.tasker.activity.Intent.MQTT_PUBLISH_ACTION;
 
 /**
@@ -123,12 +126,36 @@ public class MyIntentService extends IntentService {
         }
     }
 
+    private void startConnectAction(Intent intent){
+        Bundle taskerBundle = intent.getBundleExtra(EXTRA_BUNDLE);
+        if(taskerBundle!=null){
+            Long brokerId = taskerBundle.getLong(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BROKER_ID, 0);
+
+            Log.i(MyIntentService.class.getName(),"Our broker id is " + brokerId);
+            if(brokerId>0){
+                data = ((MQTTClientApplication)getApplication()).getData();
+                data.select(BrokerEntity.class).where(BrokerEntity.ID.eq(brokerId)).get().each(new io.requery.util.function.Consumer<BrokerEntity>() {
+                    @Override
+                    public void accept(BrokerEntity brokerEntity) {
+                        brokerEntity.setEnabled(true);
+                        data.update(brokerEntity);
+                        mqttClients = MQTTClients.getInstance((MQTTClientApplication) getApplication());
+                        mqttClients.doConnect(brokerEntity);
+                    }
+                });
+            }
+        }
+    }
+
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
             final String action = intent.getAction();
             if (MQTT_PUBLISH_ACTION.equals(action)) {
                 startActionPublish(intent);
+            }
+            else if(MQTT_CONNECT_ACTION.equals(action)){
+                startConnectAction(intent);
             }
         }
     }
