@@ -572,7 +572,8 @@ public class TaskerPlugin {
 			
 			Bundle passThroughBundle = retrieveOrCreatePassThroughBundle( requestQueryIntent );
 			passThroughBundle.putAll( data );
-            return lastRandomsSeen[randomInsertPointer-1];
+
+            return randomInsertPointer!=0?lastRandomsSeen[randomInsertPointer-1]:lastRandomsSeen[randomInsertPointer];
 		}
 
 		/**

@@ -12,6 +12,7 @@ import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -21,6 +22,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import java.sql.Timestamp;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -154,17 +156,20 @@ public class MQTTClients {
         mqttAndroidClient.setCallback(new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {
-                if(reconnect) {
-                    setBrokerStatus(brokerEntity,"Reconnected to " + uri);
-                }
-                else {
-                    setBrokerStatus(brokerEntity,"Connected to " + uri);
-                }
+                setBrokerStatus(brokerEntity,(reconnect?"Rec":"C")+"onnected to " + uri);
                 subscribeToTopics(brokerEntity,mqttAndroidClient);
             }
 
             @Override
+            public void startingConnect(boolean reconnect) {
+
+                setBrokerStatus(brokerEntity,(reconnect?"Rec":"C")+"onnecting to " + uri);
+            }
+
+
+            @Override
             public void connectionLost(Throwable cause) {
+                if(cause!=null) cause.printStackTrace();
                 TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
                 int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST,PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
                 brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
@@ -257,19 +262,18 @@ public class MQTTClients {
             connectOptions.setSocketFactory(SSLUtil.getSocketFactory(caCrt,clientCrt,clientKey,clientKeyPassword,clientP12));
         }
         try {
-            setBrokerStatus(brokerEntity, "Connecting to " + uri);
-
             mqttAndroidClient.connect(connectOptions, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
                     DisconnectedBufferOptions disconnectedBufferOptions = new DisconnectedBufferOptions();
                     disconnectedBufferOptions.setBufferEnabled(true);
                     disconnectedBufferOptions.setBufferSize(100);
-                    disconnectedBufferOptions.setPersistBuffer(false);
+                    disconnectedBufferOptions.setPersistBuffer(true);
                     disconnectedBufferOptions.setDeleteOldestMessages(false);
                     mqttAndroidClient.setBufferOpts(disconnectedBufferOptions);
                     setBrokerStatus(brokerEntity,"Connected to " + uri);
                 }
+
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
@@ -283,18 +287,27 @@ public class MQTTClients {
                             disconnectedBufferOptions.setDeleteOldestMessages(false);
                             mqttAndroidClient.setBufferOpts(disconnectedBufferOptions);
                             setBrokerStatus(brokerEntity,"Connected to " + uri);
-                            subscribeToTopics(brokerEntity,mqttAndroidClient);
+                            //subscribeToTopics(brokerEntity,mqttAndroidClient);
                             return;
                         }
+                        else{
+                            TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
+                            int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST, PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
+                            brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
+                            data.update(brokerEntity).blockingGet();
+                            Calendar wakeUpTime = Calendar.getInstance();
+                            wakeUpTime.add(Calendar.MILLISECOND, mqttAndroidClient.getReconnectDelay());
+                            setBrokerStatus(brokerEntity, "Failed to connect to " + uri + ". Next Connect scheduled at " + wakeUpTime.getTime());
+                            application.sendBroadcast(INTENT_REQUEST_REQUERY_CONN_LOST);
+                            Log.i(MQTTClients.class.getName(), "broadcasting connection lost with tasker id: " + taskerPassthroughMessageId);
+                        }
                     }
-                    TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
-                    int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST,PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
-                    brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
-                    data.update(brokerEntity).blockingGet();
-                    setBrokerStatus(brokerEntity,"Failed to connect to " + uri + " won't retry");
-                    application.sendBroadcast(INTENT_REQUEST_REQUERY_CONN_LOST);
-                    Log.i(MQTTClients.class.getName(),"broadcasting connection lost with tasker id: " + taskerPassthroughMessageId);
 
+                }
+
+                @Override
+                public void onIntermediate(IMqttToken asyncActionToken) {
+                    setBrokerStatus(brokerEntity, "Connecting to " + uri);
                 }
             });
         } catch (MqttException e) {
@@ -329,6 +342,11 @@ public class MQTTClients {
                     @Override
                     public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                         if(exception!=null) exception.printStackTrace();
+                    }
+
+                    @Override
+                    public void onIntermediate(IMqttToken asyncActionToken) {
+
                     }
                 });
             } catch (MqttException e) {
@@ -367,6 +385,11 @@ public class MQTTClients {
                     public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                         if(exception!=null) exception.printStackTrace();
                     }
+
+                    @Override
+                    public void onIntermediate(IMqttToken asyncActionToken) {
+
+                    }
                 });
             } catch (MqttException e) {
                 Toast.makeText(application.getApplicationContext(),"Failed to publish!",Toast.LENGTH_SHORT).show();
@@ -381,6 +404,7 @@ public class MQTTClients {
             //means we modified a broker
             try {
                 IMqttToken mqttToken =  mqttAndroidClient.disconnect();
+                setBrokerStatus(brokerEntity,"Disconnecting");
                 mqttToken.setActionCallback(new IMqttActionListener() {
                     @Override
                     public void onSuccess(IMqttToken asyncActionToken) {
@@ -404,6 +428,10 @@ public class MQTTClients {
                         else{
                             setBrokerStatus(brokerEntity, "Initial");
                         }
+                    }
+
+                    @Override
+                    public void onIntermediate(IMqttToken asyncActionToken) {
                     }
                 });
             } catch (MqttException e) {

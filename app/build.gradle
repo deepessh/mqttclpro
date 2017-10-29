@@ -7,8 +7,8 @@ android {
         applicationId "in.dc297.mqttclpro"
         minSdkVersion 14
         targetSdkVersion 25
-        versionCode 31
-        versionName "4.1.1b"
+        versionCode 32
+        versionName "4.2.0b"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -34,7 +34,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(dir: 'libs', include: ['*.jar','*.properties'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
@@ -44,8 +44,8 @@ dependencies {
     compile "io.requery:requery:${rootProject.ext.requeryVersion}"
     compile "io.requery:requery-android:${rootProject.ext.requeryVersion}" // for android
 
-    compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:${rootProject.ext.clientVersion}"
-    compile "org.eclipse.paho:org.eclipse.paho.android.service:${rootProject.ext.serviceVersion}"
+    //compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:${rootProject.ext.clientVersion}"
+    //compile "org.eclipse.paho:org.eclipse.paho.android.service:${rootProject.ext.serviceVersion}"
 
     compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.56'
 
