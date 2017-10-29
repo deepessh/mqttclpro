@@ -156,14 +156,11 @@ public class MQTTClients {
             public void connectComplete(boolean reconnect, String serverURI) {
                 if(reconnect) {
                     setBrokerStatus(brokerEntity,"Reconnected to " + uri);
-                    if(brokerEntity.getCleanSession()){
-                        subscribeToTopics(brokerEntity,mqttAndroidClient);
-                    }
                 }
                 else {
                     setBrokerStatus(brokerEntity,"Connected to " + uri);
-                    subscribeToTopics(brokerEntity, mqttAndroidClient);
                 }
+                subscribeToTopics(brokerEntity,mqttAndroidClient);
             }
 
             @Override
@@ -272,7 +269,6 @@ public class MQTTClients {
                     disconnectedBufferOptions.setDeleteOldestMessages(false);
                     mqttAndroidClient.setBufferOpts(disconnectedBufferOptions);
                     setBrokerStatus(brokerEntity,"Connected to " + uri);
-                    subscribeToTopics(brokerEntity,mqttAndroidClient);
                 }
 
                 @Override
@@ -324,7 +320,17 @@ public class MQTTClients {
                 i++;
             }
             try {
-                mqttAndroidClient.subscribe(topics, qoss);
+                mqttAndroidClient.subscribe(topics, qoss).setActionCallback(new IMqttActionListener() {
+                    @Override
+                    public void onSuccess(IMqttToken asyncActionToken) {
+
+                    }
+
+                    @Override
+                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                        if(exception!=null) exception.printStackTrace();
+                    }
+                });
             } catch (MqttException e) {
                 e.printStackTrace();
             }
@@ -354,7 +360,7 @@ public class MQTTClients {
                 mqttAndroidClient.publish(topic, mqttMessage, null, new IMqttActionListener() {
                     @Override
                     public void onSuccess(IMqttToken asyncActionToken) {
-
+                        Log.i(MQTTClients.class.getName(),"Successfully Published");
                     }
 
                     @Override

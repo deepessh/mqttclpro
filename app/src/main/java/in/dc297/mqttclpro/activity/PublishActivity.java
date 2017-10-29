@@ -1,10 +1,7 @@
 package in.dc297.mqttclpro.activity;
 
-import android.content.ComponentName;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.res.Configuration;
-import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,7 +25,6 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 import java.sql.Timestamp;
-import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -37,9 +33,7 @@ import in.dc297.mqttclpro.databinding.TopicListItemBinding;
 import in.dc297.mqttclpro.entity.BrokerEntity;
 import in.dc297.mqttclpro.entity.Message;
 import in.dc297.mqttclpro.entity.MessageEntity;
-import in.dc297.mqttclpro.entity.Topic;
 import in.dc297.mqttclpro.entity.TopicEntity;
-import in.dc297.mqttclpro.mqtt.internal.Constants;
 import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Action;
@@ -50,8 +44,7 @@ import io.requery.android.QueryRecyclerAdapter;
 import io.requery.query.MutableResult;
 import io.requery.query.Result;
 import io.requery.reactivex.ReactiveEntityStore;
-import io.requery.reactivex.ReactiveResult;
-import io.requery.sql.StatementExecutionException;
+import io.requery.util.CloseableIterator;
 
 public class PublishActivity extends AppCompatActivity {
 
@@ -63,6 +56,7 @@ public class PublishActivity extends AppCompatActivity {
     private TopicsListAdapter adapter;
     private long brokerId;
     private static MQTTClients mqttClients;
+    private CloseableIterator<TopicEntity> topicEntityIterator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,7 +139,7 @@ public class PublishActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(),"Invalid topic",Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    final Iterator<TopicEntity> topicEntityIterator = data.select(TopicEntity.class)
+                    topicEntityIterator = data.select(TopicEntity.class)
                             .where(TopicEntity.NAME.eq(topic)
                                     .and(TopicEntity.TYPE.eq(1)
                                             .and(TopicEntity.BROKER.eq(broker))
@@ -160,7 +154,6 @@ public class PublishActivity extends AppCompatActivity {
                     messageEntity.setPayload(message);
                     messageEntity.setTimeStamp(new Timestamp(System.currentTimeMillis()));
                     messageEntity.setRetained(retained);
-
                     if(topicEntityIterator.hasNext()){
                         messageEntity.setTopic(topicEntityIterator.next());
                     }
@@ -242,6 +235,7 @@ public class PublishActivity extends AppCompatActivity {
     protected void onDestroy() {
         executor.shutdown();
         adapter.close();
+        if(topicEntityIterator!=null) topicEntityIterator.close();
         super.onDestroy();
     }
 

@@ -24,6 +24,7 @@ import in.dc297.mqttclpro.entity.Message;
 import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.entity.TopicEntity;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
@@ -102,6 +103,33 @@ public class MessageActivity extends AppCompatActivity {
             case android.R.id.home:
                 finish();
                 break;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem menu){
+        switch(menu.getItemId()){
+            case R.id.delete:
+                if(adapter.toDelete!=null) {
+                    data.delete(adapter.toDelete)
+                            .subscribeOn(Schedulers.single())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Action() {
+                                @Override
+                                public void run() throws Exception {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            adapter.queryAsync();
+                                        }
+                                    });
+                                }
+                            });
+                }
+                break;
+            default:
+                super.onContextItemSelected(menu);
         }
         return true;
     }

@@ -230,6 +230,23 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
                             });
                 }
                 break;
+            case R.id.deleteMessages:
+                if(adapter.toDelete!=null){
+                    data.delete(MessageEntity.class)
+                            .where(MessageEntity.TOPIC
+                                    .eq(adapter.toDelete))
+                            .get()
+                            .single()
+                            .subscribeOn(Schedulers.single())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Consumer<Integer>() {
+                                @Override
+                                public void accept(Integer integer) throws Exception {
+                                    adapter.queryAsync();
+                                }
+                            });
+                }
+                break;
             default:
                 super.onContextItemSelected(menu);
         }
@@ -288,7 +305,7 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
                 @Override
                 public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
                     MenuInflater inflater = getMenuInflater();
-                    inflater.inflate(R.menu.subscribe_topic_menu, menu);
+                    inflater.inflate(R.menu.delete_subscribe_topic_menu, menu);
                     toDelete = (TopicEntity) binding.getTopic();
                 }
             });

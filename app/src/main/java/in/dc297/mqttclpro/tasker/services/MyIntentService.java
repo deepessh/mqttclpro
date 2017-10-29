@@ -26,6 +26,7 @@ import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
 import io.requery.query.Result;
 import io.requery.reactivex.ReactiveEntityStore;
+import io.requery.util.CloseableIterator;
 import tasker.TaskerPlugin;
 
 import static in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BUNDLE;
@@ -86,7 +87,7 @@ public class MyIntentService extends IntentService {
                 @Override
                 public void accept(final BrokerEntity brokerEntity) throws Exception {
                     Result<TopicEntity> topicEntities = data.select(TopicEntity.class).where(TopicEntity.NAME.eq(topic).and(TopicEntity.TYPE.eq(1).and(TopicEntity.BROKER.eq(brokerEntity)))).get();
-                    Iterator<TopicEntity> topicEntityIterator = topicEntities.iterator();
+                    final CloseableIterator<TopicEntity> topicEntityIterator = topicEntities.iterator();
 
                     MessageEntity messageEntity = new MessageEntity();
                     messageEntity.setDisplayTopic(topic);
@@ -113,12 +114,14 @@ public class MyIntentService extends IntentService {
                                 public void accept(MessageEntity messageEntity) throws Exception {
                                     Log.i(PublishActivity.class.getName(), "Sending " + messageEntity.getId());
                                     mqttClients.publishMessage(brokerEntity, topic, message, Integer.parseInt(qos), retained, messageEntity.getId());
+                                    if(topicEntityIterator!=null) topicEntityIterator.close();
                                 }
                             }, new Consumer<Throwable>() {
                                 @Override
                                 public void accept(Throwable throwable) throws Exception {
                                     Toast.makeText(getApplicationContext(), "Unknown error occurred!", Toast.LENGTH_SHORT).show();
                                     throwable.printStackTrace();
+                                    if(topicEntityIterator!=null) topicEntityIterator.close();
                                 }
                             });
                 }
