@@ -1150,6 +1150,7 @@ public class MQTTService extends Service implements MqttCallback
             try
             {
                 MqttConnectOptions connOpts = new MqttConnectOptions();
+                connOpts.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
                 connOpts.setCleanSession(cleanSession);
                 connOpts.setKeepAliveInterval(keepAliveSeconds);
 

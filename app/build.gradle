@@ -8,8 +8,8 @@ android {
         applicationId "in.dc297.mqttclpro"
         minSdkVersion 17
         targetSdkVersion 25
-        versionCode 26
-        versionName "3.2.1"
+        versionCode 27
+        versionName "3.2.2"
     }
     buildTypes {
         release {
@@ -17,6 +17,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    buildToolsVersion '26.0.2'
 }
 repositories {
     jcenter()
@@ -30,7 +31,7 @@ dependencies {
     compile "com.android.support:design:${rootProject.ext.supportLibVersion}"
     compile "com.android.support:recyclerview-v7:${rootProject.ext.supportLibVersion}"
     compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:${rootProject.ext.clientVersion}"
-    //compile 'org.eclipse.paho:org.eclipse.paho.android.service:1.0.2'
+    compile "org.eclipse.paho:org.eclipse.paho.android.service:${rootProject.ext.serviceVersion}"
 
     compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.56'
     compile 'org.sufficientlysecure:donations:2.5'
