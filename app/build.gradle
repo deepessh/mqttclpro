@@ -7,8 +7,8 @@ android {
         applicationId "in.dc297.mqttclpro"
         minSdkVersion 14
         targetSdkVersion 25
-        versionCode 32
-        versionName "4.2.0b"
+        versionCode 33
+        versionName "4.2.1b"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }

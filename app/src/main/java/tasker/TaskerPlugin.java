@@ -879,7 +879,7 @@ public class TaskerPlugin {
 	 *
 	 * @return a random positive integer
 	*/
-    public static int getPositiveNonRepeatingRandomInteger() {
+    public synchronized static int getPositiveNonRepeatingRandomInteger() {
 		
     	// initialize on first call
 		if ( sr == null ) {
