@@ -55,11 +55,11 @@ public class MessageActivity extends AppCompatActivity {
             finish();
         }
         if(topic.getType()==0) {
-            data.update(MessageEntity.class)
+            int rowCount = data.update(MessageEntity.class)
                     .set(MessageEntity.READ, 1)
                     .where(
-                            MessageEntity.TOPIC.eq(topic)
-                                    .and(MessageEntity.READ.eq(0))).get();
+                            MessageEntity.TOPIC_ID.eq(topic.getId())
+                                    .and(MessageEntity.READ.eq(0))).get().value();
         }
         setTitle((topic.getType()==0?"Received":"Published")+" messages for " + topic.getName());
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);

@@ -7,8 +7,8 @@ android {
         applicationId "in.dc297.mqttclpro"
         minSdkVersion 14
         targetSdkVersion 25
-        versionCode 33
-        versionName "4.2.1b"
+        versionCode 36
+        versionName "4.2.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -47,7 +47,6 @@ dependencies {
     })
 
     annotationProcessor "io.requery:requery-processor:${rootProject.ext.requeryVersion}"
-    compile "net.zetetic:android-database-sqlcipher:${rootProject.ext.sqlCipherVersion}"
     compile "io.requery:requery:${rootProject.ext.requeryVersion}"
     compile "io.requery:requery-android:${rootProject.ext.requeryVersion}" // for android
 
