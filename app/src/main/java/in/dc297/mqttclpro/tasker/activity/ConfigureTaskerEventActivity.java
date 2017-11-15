@@ -82,8 +82,8 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
         }
         //comparators stuff starts
         final Spinner topicComparatorSpinner = (Spinner)findViewById(R.id.topicComparatorSpinner);
-        ArrayAdapter dataAdapterTopicComparator = ArrayAdapter.createFromResource(this, R.array.comparators_array, android.R.layout.simple_spinner_item);
-        dataAdapterTopicComparator.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter dataAdapterTopicComparator = ArrayAdapter.createFromResource(this, R.array.comparators_array, R.layout.simple_spinner_item_black);
+        dataAdapterTopicComparator.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_black);
 
         final Button topicComparatorButton = (Button) findViewById(R.id.topicComparatorButton);
         topicComparatorButton.setOnClickListener(new View.OnClickListener() {
@@ -108,8 +108,8 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
         });
 
         final Spinner messageComparatorSpinner = (Spinner)findViewById(R.id.messageComparatorSpinner);
-        ArrayAdapter dataAdapterMessageComparator = ArrayAdapter.createFromResource(this, R.array.comparators_array, android.R.layout.simple_spinner_item);
-        dataAdapterMessageComparator.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter dataAdapterMessageComparator = ArrayAdapter.createFromResource(this, R.array.comparators_array, R.layout.simple_spinner_item_black);
+        dataAdapterMessageComparator.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_black);
 
         final Button messageComparatorButton = (Button) findViewById(R.id.messageComparatorButton);
         messageComparatorButton.setOnClickListener(new View.OnClickListener() {
@@ -144,8 +144,8 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
         }
 
         ArrayAdapter dataAdapter_b = new ArrayAdapter(this,
-                android.R.layout.simple_spinner_item, brokers);
-        dataAdapter_b.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.simple_spinner_item_black, brokers);
+        dataAdapter_b.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_black);
         brokerSpinner.setAdapter(dataAdapter_b);
 
         final  Spinner topicSpinner = (Spinner) findViewById(R.id.editText);
@@ -196,11 +196,11 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
                 }
                 // Creating adapter for spinner
                 ArrayAdapter dataAdapter = new ArrayAdapter(getApplicationContext(),
-                        android.R.layout.simple_spinner_item,topics);
+                        R.layout.simple_spinner_item_black,topics);
 
                 // Drop down layout style - list view with radio button
                 dataAdapter
-                        .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        .setDropDownViewResource(R.layout.simple_spinner_dropdown_item_black);
                 topicSpinner.setAdapter(dataAdapter);
                 topicSpinner.setSelection(selIndex_t);
             }

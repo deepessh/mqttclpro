@@ -47,8 +47,8 @@ public class ActionEditActivity extends AbstractPluginActivity {
         final Spinner qosSpinner = (Spinner) findViewById(R.id.qos_spinner);
         Switch retainedSwitch = (Switch) findViewById(R.id.message_retained);
 
-        ArrayAdapter qosAdapter = ArrayAdapter.createFromResource(this, R.array.qos_array, android.R.layout.simple_spinner_item);
-        qosAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter qosAdapter = ArrayAdapter.createFromResource(this, R.array.qos_array, R.layout.simple_spinner_item_black);
+        qosAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_black);
 
         qosSpinner.setAdapter(qosAdapter);
 
@@ -73,8 +73,8 @@ public class ActionEditActivity extends AbstractPluginActivity {
         }
 
         ArrayAdapter dataAdapter_b = new ArrayAdapter(this,
-                android.R.layout.simple_spinner_item, brokers);
-        dataAdapter_b.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.simple_spinner_item_black, brokers);
+        dataAdapter_b.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_black);
         brokerSpinner.setAdapter(dataAdapter_b);
 
 

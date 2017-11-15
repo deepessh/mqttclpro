@@ -95,7 +95,8 @@
             android:layout_toEndOf="@+id/qosTV"
             android:layout_marginLeft="20dp"
             android:dropDownWidth="wrap_content"
-            android:layout_toRightOf="@+id/qosTV" />
+            android:layout_toRightOf="@+id/qosTV"
+            />
 
         <TextView
             android:layout_width="wrap_content"

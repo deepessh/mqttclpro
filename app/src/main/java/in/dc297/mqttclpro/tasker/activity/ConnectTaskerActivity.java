@@ -67,8 +67,8 @@ public class ConnectTaskerActivity extends AbstractPluginActivity {
         }
 
         ArrayAdapter dataAdapter_b = new ArrayAdapter(this,
-                android.R.layout.simple_spinner_item, brokers);
-        dataAdapter_b.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.simple_spinner_item_black, brokers);
+        dataAdapter_b.setDropDownViewResource(R.layout.simple_spinner_dropdown_item_black);
         brokerSpinner.setAdapter(dataAdapter_b);
 
         if(brokerId!=0){
