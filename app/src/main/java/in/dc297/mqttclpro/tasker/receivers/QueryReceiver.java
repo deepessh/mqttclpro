@@ -23,10 +23,8 @@ import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
 import in.dc297.mqttclpro.mqtt.internal.Util;
 import in.dc297.mqttclpro.tasker.Constants;
 import in.dc297.mqttclpro.tasker.PluginBundleManager;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
-import io.requery.reactivex.ReactiveEntityStore;
+import io.requery.sql.EntityDataStore;
 import tasker.TaskerPlugin;
 
 import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
@@ -40,7 +38,7 @@ import static in.dc297.mqttclpro.tasker.activity.Intent.MESSAGE_ARRIVED;
 
 public class QueryReceiver extends BroadcastReceiver {
 
-    ReactiveEntityStore<Persistable> data = null;
+    EntityDataStore<Persistable> data = null;
     @Override
     public void onReceive(Context context, Intent intent) {
 
@@ -111,11 +109,7 @@ public class QueryReceiver extends BroadcastReceiver {
                 data.update(BrokerEntity.class)
                         .set(BrokerEntity.TASKER_PASS_THROUGH_ID,0)
                         .where(BrokerEntity.TASKER_PASS_THROUGH_ID.eq(taskerPassThroughId))
-                        .get()
-                        .single()
-                        .subscribeOn(Schedulers.single())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe();
+                        .get();
                 setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_SATISFIED);
             }
         }
@@ -165,13 +159,6 @@ public class QueryReceiver extends BroadcastReceiver {
                 setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNKNOWN);
                 return;
             }
-            //reset tasker id
-            data.update(MessageEntity.class).set(MessageEntity.TASKER_ID,0).where(MessageEntity.TASKER_ID.eq(taskerMessageId))
-                    .get()
-                    .single()
-                    .subscribeOn(Schedulers.single())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe();
 
             MessageEntity messageEntity = messageEntityList.get(0);
             if(messageEntity==null){
@@ -220,14 +207,14 @@ public class QueryReceiver extends BroadcastReceiver {
             } else {
                 Log.i("Query success", "Seems like host doesnt support variable setting");
             }
-
+            //reset tasker id
+            data.update(MessageEntity.class).set(MessageEntity.TASKER_ID,0).where(MessageEntity.TASKER_ID.eq(taskerMessageId)).get();
+            setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_SATISFIED);
 
         }
         catch(Exception e){
             e.printStackTrace();
         }
-
-        setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_SATISFIED);
     }
 
     private Object getCustomValue(String methodName, String a, String b){

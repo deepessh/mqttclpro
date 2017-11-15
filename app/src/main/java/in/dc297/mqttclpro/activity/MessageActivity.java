@@ -4,7 +4,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -18,24 +17,16 @@ import java.util.concurrent.Executors;
 
 import in.dc297.mqttclpro.R;
 import in.dc297.mqttclpro.databinding.MessagesListItemBinding;
-import in.dc297.mqttclpro.databinding.TopicListItemBinding;
-import in.dc297.mqttclpro.entity.BrokerEntity;
-import in.dc297.mqttclpro.entity.Message;
 import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.entity.TopicEntity;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Action;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
 import io.requery.android.QueryRecyclerAdapter;
-import io.requery.query.MutableResult;
 import io.requery.query.Result;
-import io.requery.reactivex.ReactiveEntityStore;
+import io.requery.sql.EntityDataStore;
 
 public class MessageActivity extends AppCompatActivity {
 
-    private ReactiveEntityStore<Persistable> data;
+    private EntityDataStore<Persistable> data;
     private TopicEntity topic;
     private ExecutorService executor;
     private MessagesListAdapter adapter;
@@ -57,43 +48,31 @@ public class MessageActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(),"Unknown Error!",Toast.LENGTH_SHORT).show();
             finish();
         }
-        data.findByKey(TopicEntity.class,topicId)
-                .subscribeOn(Schedulers.single())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<TopicEntity>() {
-                    @Override
-                    public void accept(TopicEntity topicEntity) throws Exception {
-                        topic = topicEntity;
-                        if(topic.getType()==0) {
-                            data.update(MessageEntity.class)
-                                    .set(MessageEntity.READ, 1)
-                                    .where(
-                                            MessageEntity.TOPIC.eq(topic)
-                                                    .and(MessageEntity.READ.eq(0)))
-                                    .get().single()
-                                    .subscribeOn(Schedulers.single())
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe();
-                        }
-                        setTitle((topic.getType()==0?"Received":"Published")+" messages for " + topic.getName());
-                    }
-                });
+        TopicEntity topicEntity = data.findByKey(TopicEntity.class,topicId);
+        topic = topicEntity;
+        if(topic==null) {
+            Toast.makeText(getApplicationContext(),"Some error occurred",Toast.LENGTH_SHORT).show();
+            finish();
+        }
+        if(topic.getType()==0) {
+            data.update(MessageEntity.class)
+                    .set(MessageEntity.READ, 1)
+                    .where(
+                            MessageEntity.TOPIC.eq(topic)
+                                    .and(MessageEntity.READ.eq(0))).get();
+        }
+        setTitle((topic.getType()==0?"Received":"Published")+" messages for " + topic.getName());
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         executor = Executors.newSingleThreadExecutor();
         adapter = new MessagesListAdapter();
         adapter.setExecutor(executor);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        data.count(MessageEntity.class).where(MessageEntity.TOPIC_ID.eq(topicId)).get().single()
-                .subscribe(new Consumer<Integer>() {
-                    @Override
-                    public void accept(Integer integer) {
-                        if (integer == 0) {
-                            Toast.makeText(getApplicationContext(), "No message received/published for this topic!",Toast.LENGTH_SHORT).show();
-                            finish();
-                        }
-                    }
-                });
+        Integer integer = data.count(MessageEntity.class).where(MessageEntity.TOPIC_ID.eq(topicId)).get().value();
+        if (integer == 0) {
+            Toast.makeText(getApplicationContext(), "No message received/published for this topic!", Toast.LENGTH_SHORT).show();
+            finish();
+        }
 
     }
 
@@ -112,20 +91,13 @@ public class MessageActivity extends AppCompatActivity {
         switch(menu.getItemId()){
             case R.id.delete:
                 if(adapter.toDelete!=null) {
-                    data.delete(adapter.toDelete)
-                            .subscribeOn(Schedulers.single())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Action() {
-                                @Override
-                                public void run() throws Exception {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            adapter.queryAsync();
-                                        }
-                                    });
-                                }
-                            });
+                    data.delete(adapter.toDelete);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.queryAsync();
+                        }
+                    });
                 }
                 break;
             default:

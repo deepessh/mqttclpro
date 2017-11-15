@@ -266,9 +266,6 @@ public class CommsCallback implements Runnable {
  	                token.internalTok.setNotified(true);
  	            }
  			}
-			
-
-			
 		}
 	}
 

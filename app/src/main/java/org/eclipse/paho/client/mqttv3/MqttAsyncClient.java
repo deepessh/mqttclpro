@@ -123,6 +123,7 @@ public class MqttAsyncClient implements IMqttAsyncClient {
 	public boolean reconnecting = false;
 	private static Object clientLock = new Object(); // Simple lock
 
+
 	private ScheduledExecutorService executorService;
 
 	/**
@@ -1467,6 +1468,7 @@ public class MqttAsyncClient implements IMqttAsyncClient {
 				comms.setRestingState(true);
 				reconnecting = true;
 				startReconnectCycle();
+				if(mqttCallback!=null) mqttCallback.connectionLost(cause);
 			}
 		}
 

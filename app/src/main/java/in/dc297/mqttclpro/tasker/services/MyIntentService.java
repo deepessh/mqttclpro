@@ -20,12 +20,9 @@ import in.dc297.mqttclpro.entity.BrokerEntity;
 import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.entity.TopicEntity;
 import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
 import io.requery.query.Result;
-import io.requery.reactivex.ReactiveEntityStore;
+import io.requery.sql.EntityDataStore;
 import io.requery.util.CloseableIterator;
 import tasker.TaskerPlugin;
 
@@ -45,7 +42,7 @@ public class MyIntentService extends IntentService {
         super("MyIntentService");
     }
 
-    private ReactiveEntityStore<Persistable> data = null;
+    private EntityDataStore<Persistable> data = null;
     private MQTTClients mqttClients = null;
     /**
      * Starts this service to perform action Baz with the given parameters. If
@@ -55,7 +52,7 @@ public class MyIntentService extends IntentService {
      */
     public void startActionPublish(final Intent intent) {
         Bundle taskerBundle = intent.getBundleExtra(EXTRA_BUNDLE);
-        if(taskerBundle!=null) {
+        if (taskerBundle != null) {
             final String topic = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_TOPIC);
             final String message = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_MESSAGE);
             final String qos = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_QOS);
@@ -83,49 +80,36 @@ public class MyIntentService extends IntentService {
             }
             data = ((MQTTClientApplication) getApplication()).getData();
             mqttClients = MQTTClients.getInstance((MQTTClientApplication) getApplication());
-            data.findByKey(BrokerEntity.class, brokerId).subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<BrokerEntity>() {
-                @Override
-                public void accept(final BrokerEntity brokerEntity) throws Exception {
-                    Result<TopicEntity> topicEntities = data.select(TopicEntity.class).where(TopicEntity.NAME.eq(topic).and(TopicEntity.TYPE.eq(1).and(TopicEntity.BROKER.eq(brokerEntity)))).get();
-                    final CloseableIterator<TopicEntity> topicEntityIterator = topicEntities.iterator();
+            BrokerEntity brokerEntity = data.findByKey(BrokerEntity.class, brokerId);
+            Result<TopicEntity> topicEntities = data.select(TopicEntity.class).where(TopicEntity.NAME.eq(topic).and(TopicEntity.TYPE.eq(1).and(TopicEntity.BROKER.eq(brokerEntity)))).get();
+            final CloseableIterator<TopicEntity> topicEntityIterator = topicEntities.iterator();
 
-                    MessageEntity messageEntity = new MessageEntity();
-                    messageEntity.setDisplayTopic(topic);
-                    messageEntity.setQOS(Integer.valueOf(qos));
-                    messageEntity.setPayload(message);
-                    messageEntity.setTimeStamp(new Timestamp(System.currentTimeMillis()));
-                    messageEntity.setRetained(retained);
+            MessageEntity messageEntity = new MessageEntity();
+            messageEntity.setDisplayTopic(topic);
+            messageEntity.setQOS(Integer.valueOf(qos));
+            messageEntity.setPayload(message);
+            messageEntity.setTimeStamp(new Timestamp(System.currentTimeMillis()));
+            messageEntity.setRetained(retained);
 
-                    if (topicEntityIterator.hasNext()) {
-                        messageEntity.setTopic(topicEntityIterator.next());
-                    } else {
-                        TopicEntity topicEntity = new TopicEntity();
-                        topicEntity.setBroker(brokerEntity);
-                        topicEntity.setQOS(0);//setting to 0 as in case of published message, qos will be set on message level
-                        topicEntity.setType(1);
-                        topicEntity.setName(topic);
-                        messageEntity.setTopic(topicEntity);
-                    }
-                    data.insert(messageEntity)
-                            .subscribeOn(Schedulers.single())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Consumer<MessageEntity>() {
-                                @Override
-                                public void accept(MessageEntity messageEntity) throws Exception {
-                                    Log.i(PublishActivity.class.getName(), "Sending " + messageEntity.getId());
-                                    mqttClients.publishMessage(brokerEntity, topic, message, Integer.parseInt(qos), retained, messageEntity.getId());
-                                    if(topicEntityIterator!=null) topicEntityIterator.close();
-                                }
-                            }, new Consumer<Throwable>() {
-                                @Override
-                                public void accept(Throwable throwable) throws Exception {
-                                    Toast.makeText(getApplicationContext(), "Unknown error occurred!", Toast.LENGTH_SHORT).show();
-                                    throwable.printStackTrace();
-                                    if(topicEntityIterator!=null) topicEntityIterator.close();
-                                }
-                            });
-                }
-            });
+            if (topicEntityIterator.hasNext()) {
+                messageEntity.setTopic(topicEntityIterator.next());
+            } else {
+                TopicEntity topicEntity = new TopicEntity();
+                topicEntity.setBroker(brokerEntity);
+                topicEntity.setQOS(0);//setting to 0 as in case of published message, qos will be set on message level
+                topicEntity.setType(1);
+                topicEntity.setName(topic);
+                messageEntity.setTopic(topicEntity);
+            }
+            MessageEntity messageEntity1 = data.insert(messageEntity);
+            if(messageEntity1.getId()>0) {
+                Log.i(PublishActivity.class.getName(), "Sending " + messageEntity.getId());
+                mqttClients.publishMessage(brokerEntity, topic, message, Integer.parseInt(qos), retained, messageEntity.getId());
+            }
+            else {
+                Toast.makeText(getApplicationContext(), "Unknown error occurred!", Toast.LENGTH_SHORT).show();
+            }
+            if(topicEntityIterator!=null) topicEntityIterator.close();
         }
     }
 

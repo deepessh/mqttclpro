@@ -19,14 +19,14 @@ import in.dc297.mqttclpro.R;
 import in.dc297.mqttclpro.activity.MQTTClientApplication;
 import in.dc297.mqttclpro.entity.BrokerEntity;
 import io.requery.Persistable;
-import io.requery.reactivex.ReactiveEntityStore;
+import io.requery.sql.EntityDataStore;
 import tasker.TaskerPlugin;
 
 import static in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BUNDLE;
 
 public class ActionEditActivity extends AbstractPluginActivity {
 
-    private ReactiveEntityStore<Persistable> data = null;
+    private EntityDataStore<Persistable> data = null;
     private List<BrokerEntity> brokerEntityList = null;
 
     @Override
@@ -57,6 +57,7 @@ public class ActionEditActivity extends AbstractPluginActivity {
         brokerEntityList = data.select(BrokerEntity.class).where(BrokerEntity.ENABLED.eq(true)).get().toList();
         if(brokerEntityList.size()<=0){
             Toast.makeText(getApplicationContext(),"Please add at least 1 broker before configuring tasker event.",Toast.LENGTH_SHORT).show();
+            mIsCancelled = true;
             finish();
             return;
         }

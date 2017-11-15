@@ -12,7 +12,6 @@ import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -34,12 +33,10 @@ import in.dc297.mqttclpro.entity.TopicEntity;
 import in.dc297.mqttclpro.tasker.PluginBundleManager;
 import in.dc297.mqttclpro.tasker.activity.ConfigureTaskerEventActivity;
 import in.dc297.mqttclpro.tasker.activity.ConnectionLostConfigActivity;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
 import io.requery.query.Result;
 import io.requery.reactivex.ReactiveEntityStore;
+import io.requery.sql.EntityDataStore;
 import tasker.TaskerPlugin;
 
 /**
@@ -67,7 +64,7 @@ public class MQTTClients {
     private HashMap<Long, MqttAndroidClient> clients = null;
 
     /**Requery datastore object to save or delete or restore connections**/
-    private ReactiveEntityStore<Persistable> data;
+    private EntityDataStore<Persistable> data;
 
     private MQTTClientApplication application = null;
     /**
@@ -173,7 +170,7 @@ public class MQTTClients {
                 TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
                 int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST,PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
                 brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
-                data.update(brokerEntity).blockingGet();
+                data.update(brokerEntity);
                 setBrokerStatus(brokerEntity,"Connection lost from "+ uri);
                 application.sendBroadcast(INTENT_REQUEST_REQUERY_CONN_LOST);
                 Log.i(MQTTClients.class.getName(),"broadcasting connection lost with tasker id: " + taskerPassthroughMessageId);
@@ -200,18 +197,14 @@ public class MQTTClients {
                             TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY);
                             int taskerMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY, publishedBundle);
                             messageEntity.setTaskerId(taskerMessageId);
-                            data.insert(messageEntity).subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread()).subscribe(
-                                    new Consumer<MessageEntity>() {
-                                        @Override
-                                        public void accept(MessageEntity messageEntity) throws Exception {
-                                            Intent broadcastIntent = new Intent();
-                                            broadcastIntent.setAction(in.dc297.mqttclpro.mqtt.Constants.INTENT_FILTER_SUBSCRIBE+brokerEntity.getId());
-                                            application.sendBroadcast(broadcastIntent);
-                                            application.sendBroadcast(INTENT_REQUEST_REQUERY);
-                                            //tasker stuff starts
-                                        }
-                                    }
-                            );
+                            data.insert(messageEntity);
+                            //tasker stuff starts
+                            Intent broadcastIntent = new Intent();
+                            broadcastIntent.setAction(in.dc297.mqttclpro.mqtt.Constants.INTENT_FILTER_SUBSCRIBE+brokerEntity.getId());
+                            application.sendBroadcast(broadcastIntent);
+                            application.sendBroadcast(INTENT_REQUEST_REQUERY);
+                            //tasker stuff ends
+
                         }
                     }
                 });
@@ -224,15 +217,9 @@ public class MQTTClients {
                     int messageId = message.getId();
 
                     if(messageId>0){
-                        data
-                                .update(MessageEntity.class)
-                                .set(MessageEntity.READ,1)
-                                .where(MessageEntity.ID.eq(messageId))
-                                .get()
-                                .single()
-                                .subscribeOn(Schedulers.single())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe();
+                        data.update(MessageEntity.class)
+                            .set(MessageEntity.READ,1)
+                            .where(MessageEntity.ID.eq(messageId));
                     }
 
                 } catch (MqttException e) {
@@ -294,7 +281,7 @@ public class MQTTClients {
                             TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
                             int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST, PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
                             brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
-                            data.update(brokerEntity).blockingGet();
+                            data.update(brokerEntity);
                             Calendar wakeUpTime = Calendar.getInstance();
                             wakeUpTime.add(Calendar.MILLISECOND, mqttAndroidClient.getReconnectDelay());
                             setBrokerStatus(brokerEntity, "Failed to connect to " + uri + ". Next Connect scheduled at " + wakeUpTime.getTime());

@@ -21,18 +21,15 @@ import java.util.concurrent.Executors;
 import in.dc297.mqttclpro.R;
 import in.dc297.mqttclpro.databinding.BrokerListItemBinding;
 import in.dc297.mqttclpro.entity.BrokerEntity;
-import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
-import in.dc297.mqttclpro.mqtt.services.MQTTService;
 import in.dc297.mqttclpro.services.MyMqttService;
-import io.reactivex.functions.Consumer;
 import io.requery.Persistable;
 import io.requery.android.QueryRecyclerAdapter;
 import io.requery.query.Result;
-import io.requery.reactivex.ReactiveEntityStore;
+import io.requery.sql.EntityDataStore;
 
 public class BrokersListActivity extends AppCompatActivity {
 
-    private ReactiveEntityStore<Persistable> data;
+    private EntityDataStore<Persistable> data;
     private ExecutorService executor;
     private BrokersListAdapter adapter;
     @Override
@@ -63,15 +60,10 @@ public class BrokersListActivity extends AppCompatActivity {
         adapter.setExecutor(executor);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        data.count(BrokerEntity.class).get().single()
-                .subscribe(new Consumer<Integer>() {
-                    @Override
-                    public void accept(Integer integer) {
-                        if (integer == 0) {
-                            Toast.makeText(getApplicationContext(), "Please add a broker!",Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+        Integer count = data.count(BrokerEntity.class).get().value();
+        if(count==0){
+            Toast.makeText(getApplicationContext(), "Please add a broker!",Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

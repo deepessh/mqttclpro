@@ -26,12 +26,13 @@ import in.dc297.mqttclpro.entity.Topic;
 import in.dc297.mqttclpro.tasker.BreadCrumber;
 import io.requery.Persistable;
 import io.requery.reactivex.ReactiveEntityStore;
+import io.requery.sql.EntityDataStore;
 
 import static in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BUNDLE;
 
 public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
 
-    private ReactiveEntityStore<Persistable> data = null;
+    private EntityDataStore<Persistable> data = null;
     private List<BrokerEntity> brokerEntityList = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {

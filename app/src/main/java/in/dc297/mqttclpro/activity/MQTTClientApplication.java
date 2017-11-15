@@ -7,8 +7,6 @@ import in.dc297.mqttclpro.BuildConfig;
 import in.dc297.mqttclpro.entity.Models;
 import io.requery.Persistable;
 import io.requery.android.sqlite.DatabaseSource;
-import io.requery.reactivex.ReactiveEntityStore;
-import io.requery.reactivex.ReactiveSupport;
 import io.requery.sql.Configuration;
 import io.requery.sql.EntityDataStore;
 import io.requery.sql.TableCreationMode;
@@ -18,7 +16,7 @@ import io.requery.sql.TableCreationMode;
  */
 
 public class MQTTClientApplication extends Application {
-    private ReactiveEntityStore<Persistable> dataStore;
+    private EntityDataStore<Persistable> dataStore;
 
     @Override
     public void onCreate() {
@@ -26,7 +24,7 @@ public class MQTTClientApplication extends Application {
         StrictMode.enableDefaults();
     }
 
-    public ReactiveEntityStore<Persistable> getData() {
+    public EntityDataStore<Persistable> getData() {
         if (dataStore == null) {
             // override onUpgrade to handle migrating to a new version
             DatabaseSource source = new DatabaseSource(this, Models.DEFAULT,2);
@@ -35,8 +33,7 @@ public class MQTTClientApplication extends Application {
                 source.setTableCreationMode(TableCreationMode.DROP_CREATE);
             }
             Configuration configuration = source.getConfiguration();
-            dataStore = ReactiveSupport.toReactiveStore(
-                    new EntityDataStore<Persistable>(configuration));
+            dataStore = new EntityDataStore<Persistable>(configuration);
         }
         return dataStore;
     }
