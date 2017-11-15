@@ -199,7 +199,7 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
                     data.delete(MessageEntity.class)
                             .where(MessageEntity.TOPIC
                                     .eq(adapter.toDelete))
-                            .get();
+                            .get().value();
                     adapter.queryAsync();
                 }
                 break;

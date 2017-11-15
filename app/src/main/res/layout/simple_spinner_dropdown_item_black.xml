@@ -5,5 +5,5 @@
     android:textColor="#FF000000"
     android:singleLine="true"
     android:layout_width="match_parent"
-    android:layout_height="?android:attr/dropdownListPreferredItemHeight"
+    android:layout_height="wrap_content"
     android:ellipsize="marquee"/>

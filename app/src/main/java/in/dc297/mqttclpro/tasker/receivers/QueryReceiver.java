@@ -208,7 +208,6 @@ public class QueryReceiver extends BroadcastReceiver {
                 Log.i("Query success", "Seems like host doesnt support variable setting");
             }
             //reset tasker id
-            data.update(MessageEntity.class).set(MessageEntity.TASKER_ID,0).where(MessageEntity.TASKER_ID.eq(taskerMessageId)).get();
             setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_SATISFIED);
 
         }
