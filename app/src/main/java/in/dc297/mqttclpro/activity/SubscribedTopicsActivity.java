@@ -121,13 +121,17 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
                     topicEntity.setName(topic);
                     topicEntity.setQOS(Integer.parseInt(qos));
                     topicEntity.setBroker(broker);
-                    TopicEntity insertedTopicEntity = data.insert(topicEntity);
-                    if(insertedTopicEntity.getId()>0) {
-                        adapter.queryAsync();
-                        mqttClients.subscribeToTopic(broker, topic, Integer.parseInt(qos));
-                        return true;
+                    try {
+                        TopicEntity insertedTopicEntity = data.insert(topicEntity);
+                        if (insertedTopicEntity.getId() > 0) {
+                            adapter.queryAsync();
+                            mqttClients.subscribeToTopic(broker, topic, Integer.parseInt(qos));
+                            return true;
+                        }
                     }
-                    Toast.makeText(getApplicationContext(), "Topic already Exists or some error occured!", Toast.LENGTH_SHORT).show();
+                    catch(StatementExecutionException see) {
+                        Toast.makeText(getApplicationContext(), "Topic already Exists or some error occured!", Toast.LENGTH_SHORT).show();
+                    }
                     return true;
                 }
             });

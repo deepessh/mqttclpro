@@ -40,6 +40,7 @@ import io.requery.android.QueryRecyclerAdapter;
 import io.requery.query.MutableResult;
 import io.requery.query.Result;
 import io.requery.sql.EntityDataStore;
+import io.requery.sql.RowCountException;
 import io.requery.util.CloseableIterator;
 
 public class PublishActivity extends AppCompatActivity {
@@ -167,7 +168,12 @@ public class PublishActivity extends AppCompatActivity {
         switch(menu.getItemId()){
             case R.id.delete:
                 if(adapter.toDelete!=null) {
-                    data.delete(adapter.toDelete);
+                    try {
+                        data.delete(adapter.toDelete);
+                    }
+                    catch(RowCountException rce){
+                        rce.printStackTrace();
+                    }
                 }
                 break;
             default:
