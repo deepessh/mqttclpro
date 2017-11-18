@@ -216,5 +216,7 @@
     <string name="connect_tasker_msg">If disabled, the broker will be enabled and connection attempt will be made. If the broker is already enabled, a reconnect attempt would be made.</string>
     <string name="title_activity_connect_tasker">Connect to broker</string>
     <string name="delete_all_messages">Delete all messages</string>
+    <string name="v31_switch_desc">Enable/Disable this option if you are facing frequent reconnects</string>
+    <string name="pref_title_v31">Use MQTT v3.1</string>
 
 </resources>

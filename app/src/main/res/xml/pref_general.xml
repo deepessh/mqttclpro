@@ -25,6 +25,11 @@
         android:key="WSEnabled"
         android:summary="@string/ws_switch_desc"
         android:title="@string/pref_title_ws" />
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="v31"
+        android:summary="@string/v31_switch_desc"
+        android:title="@string/pref_title_v31" />
 
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->

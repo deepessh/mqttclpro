@@ -18,6 +18,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.w3c.dom.Text;
 
 import java.sql.Timestamp;
 
@@ -35,8 +36,8 @@ import in.dc297.mqttclpro.tasker.activity.ConfigureTaskerEventActivity;
 import in.dc297.mqttclpro.tasker.activity.ConnectionLostConfigActivity;
 import io.requery.Persistable;
 import io.requery.query.Result;
-import io.requery.reactivex.ReactiveEntityStore;
 import io.requery.sql.EntityDataStore;
+import io.requery.sql.RowCountException;
 import tasker.TaskerPlugin;
 
 /**
@@ -169,11 +170,22 @@ public class MQTTClients {
                 if(cause!=null) cause.printStackTrace();
                 TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
                 int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST,PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
-                brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
-                data.update(brokerEntity);
-                setBrokerStatus(brokerEntity,"Connection lost from "+ uri);
-                application.sendBroadcast(INTENT_REQUEST_REQUERY_CONN_LOST);
-                Log.i(MQTTClients.class.getName(),"broadcasting connection lost with tasker id: " + taskerPassthroughMessageId);
+
+                if(!brokerEntity.getEnabled()){
+                    setBrokerStatus(brokerEntity, "Disabled");
+                }
+                else {
+                    brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
+                    try {
+                        data.update(brokerEntity);
+                        setBrokerStatus(brokerEntity, "Connection lost from " + uri);
+                        application.sendBroadcast(INTENT_REQUEST_REQUERY_CONN_LOST);
+                        Log.i(MQTTClients.class.getName(), "broadcasting connection lost with tasker id: " + taskerPassthroughMessageId);
+                    } catch (RowCountException e) {
+                        //seems like we have already deleted broker!
+                        e.printStackTrace();
+                    }
+                }
             }
 
             @Override
@@ -247,6 +259,13 @@ public class MQTTClients {
 
         if(ssl){
             connectOptions.setSocketFactory(SSLUtil.getSocketFactory(caCrt,clientCrt,clientKey,clientKeyPassword,clientP12));
+        }
+        boolean v31 = brokerEntity.getv31();
+        if(!v31){
+            connectOptions.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
+        }
+        else{
+            connectOptions.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
         }
         try {
             mqttAndroidClient.connect(connectOptions, null, new IMqttActionListener() {
@@ -354,6 +373,11 @@ public class MQTTClients {
     }
 
     public void publishMessage(final BrokerEntity brokerEntity, String topic, String message, int qos, boolean retained, int messageId){
+        if(TextUtils.isEmpty(topic) || brokerEntity==null){
+            return;
+        }
+        if(message==null) message="";
+
         MqttAndroidClient mqttAndroidClient = clients.get(brokerEntity.getId());
         if(mqttAndroidClient!=null){
             MqttMessage mqttMessage = new MqttMessage();
@@ -390,7 +414,8 @@ public class MQTTClients {
         if(mqttAndroidClient!=null){
             //means we modified a broker
             try {
-                IMqttToken mqttToken =  mqttAndroidClient.disconnect();
+                IMqttToken mqttToken = mqttAndroidClient.disconnect();
+
                 setBrokerStatus(brokerEntity,"Disconnecting");
                 mqttToken.setActionCallback(new IMqttActionListener() {
                     @Override
@@ -398,9 +423,8 @@ public class MQTTClients {
                         clients.remove(brokerEntity.getId());
                         if (brokerEntity.getEnabled()) {
                             clients.put(brokerEntity.getId(), fromEntity(brokerEntity));
-                        }
-                        else{
-                            setBrokerStatus(brokerEntity, "Initial");
+                        } else {
+                            setBrokerStatus(brokerEntity, "Disabled");
                         }
                     }
 
@@ -411,9 +435,8 @@ public class MQTTClients {
                         exception.printStackTrace();
                         if (brokerEntity.getEnabled()) {
                             clients.put(brokerEntity.getId(), fromEntity(brokerEntity));
-                        }
-                        else{
-                            setBrokerStatus(brokerEntity, "Initial");
+                        } else {
+                            setBrokerStatus(brokerEntity, "Disabled");
                         }
                     }
 
@@ -421,8 +444,12 @@ public class MQTTClients {
                     public void onIntermediate(IMqttToken asyncActionToken) {
                     }
                 });
+
             } catch (MqttException e) {
                 e.printStackTrace();
+            }
+            catch(IllegalArgumentException ee){
+                ee.printStackTrace();
             }
         }
         else {
@@ -430,7 +457,7 @@ public class MQTTClients {
                 clients.put(brokerEntity.getId(), fromEntity(brokerEntity));
             }
             else{
-                setBrokerStatus(brokerEntity, "Initial");
+                setBrokerStatus(brokerEntity, "Disabled");
             }
         }
     }
@@ -445,7 +472,12 @@ public class MQTTClients {
 
     private void setBrokerStatus(BrokerEntity brokerEntity, String status){
         brokerEntity.setStatus(status);
-        data.update(brokerEntity);
+        try{
+            data.update(brokerEntity);
+        }
+        catch(RowCountException e){
+            e.printStackTrace();
+        }
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(in.dc297.mqttclpro.mqtt.Constants.INTENT_FILTER_STATUS+brokerEntity.getId());
         broadcastIntent.putExtra(in.dc297.mqttclpro.mqtt.Constants.INTENT_FILTER_STATUS_KEY, status);

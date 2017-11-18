@@ -135,9 +135,12 @@ public interface Broker extends Observable, Parcelable, Persistable{
     MutableResult<Topic> getTopics();
 
     @Bindable
-    @Column(value = "Initializing")
+    @Column(value = "Disabled")
     String getStatus();
 
     @Bindable
     int getTaskerPassThroughId();
+
+    @Bindable
+    boolean getv31();
 }

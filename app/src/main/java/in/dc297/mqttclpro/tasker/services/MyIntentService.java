@@ -81,6 +81,11 @@ public class MyIntentService extends IntentService {
             data = ((MQTTClientApplication) getApplication()).getData();
             mqttClients = MQTTClients.getInstance((MQTTClientApplication) getApplication());
             BrokerEntity brokerEntity = data.findByKey(BrokerEntity.class, brokerId);
+
+            if(brokerEntity==null){
+                return;
+            }
+
             Result<TopicEntity> topicEntities = data.select(TopicEntity.class).where(TopicEntity.NAME.eq(topic).and(TopicEntity.TYPE.eq(1).and(TopicEntity.BROKER.eq(brokerEntity)))).get();
             final CloseableIterator<TopicEntity> topicEntityIterator = topicEntities.iterator();
 
