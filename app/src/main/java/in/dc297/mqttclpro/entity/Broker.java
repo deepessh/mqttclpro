@@ -142,5 +142,6 @@ public interface Broker extends Observable, Parcelable, Persistable{
     int getTaskerPassThroughId();
 
     @Bindable
+    @Column(value = "false")
     boolean getv31();
 }
