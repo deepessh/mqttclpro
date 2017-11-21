@@ -3,6 +3,8 @@ package in.dc297.mqttclpro.mqtt.internal;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -61,6 +63,9 @@ public class MQTTClients {
             new Intent(in.dc297.mqttclpro.tasker.activity.Intent.ACTION_REQUEST_QUERY).putExtra(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_ACTIVITY,
                     ConnectionLostConfigActivity.class.getName());
 
+    private Handler handler;
+    private HandlerThread handlerThread;
+
     /**
      * List of clients
      */
@@ -81,6 +86,9 @@ public class MQTTClients {
         for(BrokerEntity brokerEntity : brokerEntities){
             clients.put(brokerEntity.getId(),fromEntity(brokerEntity));
         }
+        handlerThread = new HandlerThread("messagearrived");
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
     }
 
     public synchronized static MQTTClients getInstance(MQTTClientApplication mqttClientApplication){
@@ -194,38 +202,47 @@ public class MQTTClients {
             public void messageArrived(String topic, final MqttMessage message) throws Exception {
                 final String receivedTopic = topic;
                 final MqttMessage receivedMessage = message;
-                Result<TopicEntity> topics = data.select(TopicEntity.class).where(TopicEntity.BROKER.eq(brokerEntity).and(TopicEntity.TYPE.eq(0))).get();
-                topics.each(new io.requery.util.function.Consumer<TopicEntity>() {
-                    @Override
-                    public void accept(TopicEntity topicEntity) {
-                        if(Util.mosquitto_topic_matches_sub(topicEntity.getName(),receivedTopic)){
-                            MessageEntity messageEntity = new MessageEntity();
-                            messageEntity.setPayload(new String(receivedMessage.getPayload()));
-                            messageEntity.setTopic(topicEntity);
-                            messageEntity.setQOS(receivedMessage.getQos());
-                            messageEntity.setTimeStamp(new Timestamp(System.currentTimeMillis()));
-                            messageEntity.setDisplayTopic(receivedTopic);
-                            messageEntity.setRetained(receivedMessage.isRetained());
-                            Bundle publishedBundle = PluginBundleManager.generateBundle(application.getApplicationContext(), messageEntity.getPayload(), messageEntity.getDisplayTopic());
+                if(handler!=null) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            data.select(TopicEntity.class).where(TopicEntity.BROKER.eq(brokerEntity).and(TopicEntity.TYPE.eq(0)))
+                            .get().observable()
+                            .subscribe(new Consumer<TopicEntity>() {
+                                @Override
+                                public void accept(TopicEntity topicEntity) throws Exception {
+                                    if (Util.mosquitto_topic_matches_sub(topicEntity.getName(), receivedTopic)) {
+                                        MessageEntity messageEntity = new MessageEntity();
+                                        messageEntity.setPayload(new String(receivedMessage.getPayload()));
+                                        messageEntity.setTopic(topicEntity);
+                                        messageEntity.setQOS(receivedMessage.getQos());
+                                        messageEntity.setTimeStamp(new Timestamp(System.currentTimeMillis()));
+                                        messageEntity.setDisplayTopic(receivedTopic);
+                                        messageEntity.setRetained(receivedMessage.isRetained());
 
-                            TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY);
-                            int taskerMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY, publishedBundle);
-                            messageEntity.setTaskerId(taskerMessageId);
-                            data.insert(messageEntity).subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread()).subscribe(
-                                    new Consumer<MessageEntity>() {
-                                        @Override
-                                        public void accept(MessageEntity messageEntity) throws Exception {
-                                            Intent broadcastIntent = new Intent();
-                                            broadcastIntent.setAction(in.dc297.mqttclpro.mqtt.Constants.INTENT_FILTER_SUBSCRIBE+brokerEntity.getId());
-                                            application.sendBroadcast(broadcastIntent);
-                                            application.sendBroadcast(INTENT_REQUEST_REQUERY);
-                                            //tasker stuff starts
-                                        }
+                                        Bundle publishedBundle = PluginBundleManager.generateBundle(application.getApplicationContext(), messageEntity.getPayload(), messageEntity.getDisplayTopic());
+
+                                        TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY);
+                                        int taskerMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY, publishedBundle);
+                                        messageEntity.setTaskerId(taskerMessageId);
+                                        data.insert(messageEntity).subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread()).subscribe(
+                                                new Consumer<MessageEntity>() {
+                                                    @Override
+                                                    public void accept(MessageEntity messageEntity) throws Exception {
+                                                        Intent broadcastIntent = new Intent();
+                                                        broadcastIntent.setAction(in.dc297.mqttclpro.mqtt.Constants.INTENT_FILTER_SUBSCRIBE + brokerEntity.getId());
+                                                        application.sendBroadcast(broadcastIntent);
+                                                        application.sendBroadcast(INTENT_REQUEST_REQUERY);
+                                                        //tasker stuff starts
+                                                    }
+                                                }
+                                        );
                                     }
-                            );
+                                }
+                            });
                         }
-                    }
-                });
+                    });
+                }
             }
 
             @Override

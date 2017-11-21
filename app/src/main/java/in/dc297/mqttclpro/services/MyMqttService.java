@@ -39,6 +39,7 @@ public class MyMqttService extends Service implements SharedPreferences.OnShared
     private void showNotification() {
         Notification.Builder builder = new Notification.Builder(getApplicationContext());
         builder.setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                .setContentTitle(getResources().getString(R.string.app_name))
                 .setContentText("Running in background")
                 .setAutoCancel(false);
         Notification notification = builder.getNotification();

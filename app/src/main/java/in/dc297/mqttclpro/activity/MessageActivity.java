@@ -70,7 +70,7 @@ public class MessageActivity extends AppCompatActivity {
                                     .observeOn(AndroidSchedulers.mainThread())
                                     .subscribe();
                         }
-                        setTitle((topic.getType()==0?"Received":"Published")+" messages for " + topic.getName());
+                        setTitle(topic.getName() + " - " + (topic.getType()==0?"Received":"Published")+" messages");
                     }
                 });
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);

@@ -39,10 +39,6 @@ public class MQTTClientApplication extends Application {
             EntityModel model = Models.DEFAULT;
             Configuration configuration = new ConfigurationBuilder(source, model)
                     .useDefaultLogging()
-                    .setEntityCache(new EntityCacheBuilder(model)
-                            .useReferenceCache(true)
-                            .useSerializableCache(true)
-                            .build())
                     .build();
             dataStore = ReactiveSupport.toReactiveStore(new EntityDataStore<Persistable>(configuration));
         }
