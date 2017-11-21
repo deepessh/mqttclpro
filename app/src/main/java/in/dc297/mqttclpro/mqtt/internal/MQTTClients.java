@@ -187,7 +187,7 @@ public class MQTTClients {
                 else {
                     brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
                     try {
-                        data.update(brokerEntity);
+                        data.update(brokerEntity).blockingGet();
                         setBrokerStatus(brokerEntity, "Connection lost from " + uri);
                         application.sendBroadcast(INTENT_REQUEST_REQUERY_CONN_LOST);
                         Log.i(MQTTClients.class.getName(), "broadcasting connection lost with tasker id: " + taskerPassthroughMessageId);
@@ -223,8 +223,12 @@ public class MQTTClients {
                                         Bundle publishedBundle = PluginBundleManager.generateBundle(application.getApplicationContext(), messageEntity.getPayload(), messageEntity.getDisplayTopic());
 
                                         TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY);
+
                                         int taskerMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY, publishedBundle);
                                         messageEntity.setTaskerId(taskerMessageId);
+
+                                        Log.i(MQTTClients.class.getName(),"broadcasting message arrived with tasker id " + taskerMessageId);
+
                                         data.insert(messageEntity).subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread()).subscribe(
                                                 new Consumer<MessageEntity>() {
                                                     @Override
@@ -329,7 +333,7 @@ public class MQTTClients {
                             int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST, PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
                             brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
                             try{
-                                data.update(brokerEntity);
+                                data.update(brokerEntity).blockingGet();
                             }
                             catch(Exception e){
                                 e.printStackTrace();
@@ -506,7 +510,7 @@ public class MQTTClients {
     private void setBrokerStatus(BrokerEntity brokerEntity, String status){
         brokerEntity.setStatus(status);
         try{
-            data.update(brokerEntity);
+            data.update(brokerEntity).blockingGet();
         }
         catch(RowCountException e){
             e.printStackTrace();

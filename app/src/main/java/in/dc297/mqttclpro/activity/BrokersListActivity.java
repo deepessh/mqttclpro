@@ -123,7 +123,6 @@ public class BrokersListActivity extends AppCompatActivity {
             if(binding!=null){
                 Intent intent = new Intent(v.getContext(),SubscribedTopicsActivity.class);
                 intent.putExtra(SubscribedTopicsActivity.EXTRA_BROKER_ID,binding.getBroker().getId());
-                //Toast.makeText(v.getContext(),binding.getBroker().toString(),Toast.LENGTH_SHORT).show();
                 startActivity(intent);
             }
         }
