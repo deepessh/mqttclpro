@@ -172,7 +172,7 @@
     <!-- Example settings for Notifications -->
     <string name="pref_header_notifications">Notifications</string>
 
-    <string name="pref_title_new_message_notifications">New message notifications</string>
+    <string name="pref_title_new_message_notifications">Show Persistent Notification</string>
 
     <string name="pref_title_ringtone">Ringtone</string>
     <string name="pref_ringtone_silent">Silent</string>
@@ -218,5 +218,6 @@
     <string name="delete_all_messages">Delete all messages</string>
     <string name="v31_switch_desc">Enable/Disable this option if you are facing frequent reconnects</string>
     <string name="pref_title_v31">Use MQTT v3.1</string>
+    <string name="title_activity_settings">Settings</string>
 
 </resources>

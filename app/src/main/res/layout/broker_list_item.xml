@@ -15,7 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="@{broker.nickName}"
+            android:text="@{broker.id + ` - ` + broker.nickName}"
             android:id="@+id/mmessage_tv"
             android:layout_alignParentTop="true"
             android:layout_alignParentStart="true"

@@ -28,13 +28,11 @@ import android.widget.Toast;
 import com.github.angads25.filepicker.view.FilePickerPreference;
 
 import in.dc297.mqttclpro.R;
-import in.dc297.mqttclpro.entity.Broker;
 import in.dc297.mqttclpro.entity.BrokerEntity;
 import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
 import in.dc297.mqttclpro.mqtt.internal.Util;
 import in.dc297.mqttclpro.preferences.MyBrokerPreferences;
 import io.requery.Persistable;
-import io.requery.reactivex.ReactiveEntityStore;
 import io.requery.sql.EntityDataStore;
 
 /**
@@ -221,7 +219,7 @@ public class AddEditBrokersActivity extends AppCompatPreferenceActivity {
 /*    @Override
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public void onBuildHeaders(List<Header> target) {
-        loadHeadersFromResource(R.xml.pref_headers, target);
+        loadHeadersFromResource(R.xml.pref_headers_broker, target);
     }
 */
     /**
@@ -289,7 +287,7 @@ public class AddEditBrokersActivity extends AppCompatPreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.pref_general);
+            addPreferencesFromResource(R.xml.pref_general_broker);
             setHasOptionsMenu(true);
 
             // Bind the summaries of EditText/List/Dialog/Ringtone preferences

@@ -283,7 +283,7 @@ public class MQTTClients {
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    exception.printStackTrace();
+                   if(exception!=null) exception.printStackTrace();
                     if(exception instanceof MqttException){
                         if(((MqttException)exception).getReasonCode() == 32100){
                             DisconnectedBufferOptions disconnectedBufferOptions = new DisconnectedBufferOptions();
@@ -300,7 +300,12 @@ public class MQTTClients {
                             TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
                             int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST, PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
                             brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
-                            data.update(brokerEntity);
+                            try{
+                                data.update(brokerEntity);
+                            }
+                            catch(Exception e){
+                                e.printStackTrace();
+                            }
                             Calendar wakeUpTime = Calendar.getInstance();
                             wakeUpTime.add(Calendar.MILLISECOND, mqttAndroidClient.getReconnectDelay());
                             setBrokerStatus(brokerEntity, "Failed to connect to " + uri + ". Next Connect scheduled at " + wakeUpTime.getTime());
@@ -379,7 +384,7 @@ public class MQTTClients {
         if(message==null) message="";
 
         MqttAndroidClient mqttAndroidClient = clients.get(brokerEntity.getId());
-        if(mqttAndroidClient!=null){
+        if(mqttAndroidClient!=null && !TextUtils.isEmpty(mqttAndroidClient.getClientId())){
             MqttMessage mqttMessage = new MqttMessage();
             mqttMessage.setId(messageId);
             mqttMessage.setRetained(retained);

@@ -97,6 +97,11 @@ public class BrokersListActivity extends AppCompatActivity {
             startActivity(donateIntent);
             return true;
         }
+        if(id == R.id.action_settings){
+            Intent settingsIntent = new Intent(this,SettingsActivity.class);
+            startActivity(settingsIntent);
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }

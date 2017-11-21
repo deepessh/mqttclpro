@@ -2,200 +2,32 @@
 
     <SwitchPreference
         android:defaultValue="true"
-        android:key="Enabled"
-        android:title="@string/enabled"
-        />
-    <EditTextPreference
-        android:capitalize="words"
-        android:inputType="textCapWords"
-        android:key="NickName"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/nickname"
-        />
-
-    <SwitchPreference
-        android:defaultValue="false"
-        android:key="SSLEnabled"
-        android:summary="@string/ssl_switch_desc"
-        android:title="@string/pref_title_ssl" />
-    <SwitchPreference
-        android:defaultValue="false"
-        android:key="WSEnabled"
-        android:summary="@string/ws_switch_desc"
-        android:title="@string/pref_title_ws" />
-    <SwitchPreference
-        android:defaultValue="false"
-        android:key="v31"
-        android:summary="@string/v31_switch_desc"
-        android:title="@string/pref_title_v31" />
+        android:key="example_switch"
+        android:summary="@string/pref_description_social_recommendations"
+        android:title="@string/pref_title_social_recommendations" />
 
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
     <EditTextPreference
         android:capitalize="words"
-        android:defaultValue="@string/pref_default_url"
+        android:defaultValue="@string/pref_default_display_name"
         android:inputType="textCapWords"
-        android:key="Host"
-        android:summary="@string/url_desc"
+        android:key="example_text"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
-        android:title="@string/pref_title_url" />
-
-
-    <EditTextPreference
-        android:capitalize="words"
-        android:defaultValue="@string/pref_default_port"
-        android:inputType="number"
-        android:key="Port"
-        android:summary="@string/port_desc"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/pref_title_port" />
-
-    <EditTextPreference
-        android:capitalize="words"
-        android:defaultValue="@string/pref_default_user"
-        android:inputType="textCapWords"
-        android:key="Username"
-        android:summary="@string/user_desc"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/pref_title_user" />
-
-    <EditTextPreference
-        android:capitalize="words"
-        android:defaultValue="@string/pref_default_password"
-        android:inputType="textCapWords"
-        android:key="Password"
-        android:summary="@string/password_desc"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/pref_title_password" />
-    <EditTextPreference
-        android:capitalize="words"
-        android:defaultValue="@string/pref_default_keepalive"
-        android:inputType="number"
-        android:key="KeepAlive"
-        android:summary="@string/keepalive_desc"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/pref_title_keepalive" />
-    <EditTextPreference
-        android:capitalize="words"
-        android:defaultValue="@string/pref_default_url"
-        android:inputType="textCapWords"
-        android:key="ClientId"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/pref_title_clientid" />
-    <SwitchPreference
-        android:defaultValue="false"
-        android:key="CleanSession"
-        symmary="@string/cleansession_desc"
-        android:title="@string/pref_title_cleansession" />
-    <com.github.angads25.filepicker.view.FilePickerPreference
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:key="CACrt"
-        android:title="@string/ca_crt"
-        android:summary="@string/ca_crt_desc"
-        android:defaultValue="@string/ca_crt_default"
-        app:error_dir="/mnt"
-        app:root_dir="/sdcard"
-        app:selection_mode="single_mode"
-        app:selection_type="file_select"
-        app:extensions="crt:"/>
-    <com.github.angads25.filepicker.view.FilePickerPreference
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:key="ClientCrt"
-        android:title="@string/client_crt"
-        android:summary="@string/client_crt_desc"
-        android:defaultValue="@string/client_crt_default"
-        app:error_dir="/mnt"
-        app:root_dir="/sdcard"
-        app:selection_mode="single_mode"
-        app:selection_type="file_select"
-        app:extensions="crt:"/>
-    <com.github.angads25.filepicker.view.FilePickerPreference
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:key="ClientKey"
-        android:title="@string/client_key"
-        android:summary="@string/client_key_desc"
-        android:defaultValue="@string/client_key_default"
-        app:error_dir="/mnt"
-        app:root_dir="/sdcard"
-        app:selection_mode="single_mode"
-        app:selection_type="file_select"
-        app:extensions="key:"/>
-    <com.github.angads25.filepicker.view.FilePickerPreference
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:key="ClientP12Crt"
-        android:title="@string/client_p12"
-        android:summary="@string/client_p12_desc"
-        android:defaultValue="@string/client_p12_default"
-        app:error_dir="/mnt"
-        app:root_dir="/sdcard"
-        app:selection_mode="single_mode"
-        app:selection_type="file_select"
-        app:extensions="p12:"/>
-    <EditTextPreference
-        android:capitalize="words"
-        android:defaultValue="@string/client_key_pwd_default"
-        android:inputType="textCapWords"
-        android:key="ClientKeyPwd"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/client_key_pwd"
-        android:summary="@string/client_key_pwd_desc"/>
-
-    <EditTextPreference
-        android:capitalize="words"
-        android:defaultValue="@string/pref_default_url"
-        android:inputType="textCapWords"
-        android:key="LastWillTopic"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/pref_title_lastwill_topic" />
-
-
-    <EditTextPreference
-        android:capitalize="words"
-        android:key="LastWillMessage"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/pref_title_lastwill_message" />
-
-    <ListPreference
-        android:key="LastWillQOS"
-        android:entries="@array/qos_array"
-        android:entryValues="@array/qos_array"
-        android:title="@string/pref_title_lastwill_qos" />
-
-    <SwitchPreference
-        android:defaultValue="false"
-        android:key="LastWillRetained"
-        android:title="@string/pref_title_lastwill_retained" />
+        android:title="@string/pref_title_display_name" />
 
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
          dismiss it. -->
     <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
-    <!--ListPreference
+    <ListPreference
         android:defaultValue="-1"
         android:entries="@array/pref_example_list_titles"
         android:entryValues="@array/pref_example_list_values"
         android:key="example_list"
         android:negativeButtonText="@null"
         android:positiveButtonText="@null"
-        android:title="@string/pref_title_add_friends_to_messages" /-->
+        android:title="@string/pref_title_add_friends_to_messages" />
 
 </PreferenceScreen>

@@ -130,9 +130,14 @@ public class MyIntentService extends IntentService {
                     @Override
                     public void accept(BrokerEntity brokerEntity) {
                         brokerEntity.setEnabled(true);
-                        data.update(brokerEntity);
-                        mqttClients = MQTTClients.getInstance((MQTTClientApplication) getApplication());
-                        mqttClients.doConnect(brokerEntity);
+                        try{
+                            data.update(brokerEntity);
+                            mqttClients = MQTTClients.getInstance((MQTTClientApplication) getApplication());
+                            mqttClients.doConnect(brokerEntity);
+                        }
+                        catch(Exception e){
+                            e.printStackTrace();
+                        }
                     }
                 });
             }

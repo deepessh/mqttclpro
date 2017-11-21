@@ -7,8 +7,8 @@ android {
         applicationId "in.dc297.mqttclpro"
         minSdkVersion 14
         targetSdkVersion 25
-        versionCode 41
-        versionName "4.2.7"
+        versionCode 42
+        versionName "4.3.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -38,10 +38,12 @@ android {
         exclude 'lib/mips/libsqlite3x.so'
     }
 
+
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar','*.properties'])
+    implementation 'com.android.support:support-v4:25.4.0'
+    compile fileTree(dir: 'libs', include: ['*.jar', '*.properties'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })

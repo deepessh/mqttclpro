@@ -127,13 +127,23 @@
                 <action android:name="net.dinglisch.android.tasker.ACTION_EDIT_EVENT" />
             </intent-filter>
         </activity>
-        <activity android:name=".tasker.activity.ConnectTaskerActivity"
+        <activity
+            android:name=".tasker.activity.ConnectTaskerActivity"
             android:exported="true"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/title_activity_connect_tasker">
             <intent-filter>
                 <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />
-            </intent-filter></activity>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".activity.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".activity.AddEditBrokersActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="in.dc297.mqttclpro.activity.AddEditBrokersActivity" />
+        </activity>
     </application>
 
 </manifest>

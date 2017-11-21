@@ -50,13 +50,14 @@ public final class FireReceiver extends BroadcastReceiver
         newIntent.putExtras(intent);
 
         Bundle taskerBundle = intent.getBundleExtra(EXTRA_BUNDLE);
+        if(taskerBundle!=null) {
+            String intentAction = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.ACTION_OPERATION);
 
-        String intentAction = taskerBundle.getString(in.dc297.mqttclpro.tasker.activity.Intent.ACTION_OPERATION);
-
-        if(intentAction!=null) {
-            Log.i(FireReceiver.class.getName(),"Received fire from tasker " + intentAction);
-            newIntent.setAction(intentAction);
-            context.startService(newIntent);
+            if (intentAction != null) {
+                Log.i(FireReceiver.class.getName(), "Received fire from tasker " + intentAction);
+                newIntent.setAction(intentAction);
+                context.startService(newIntent);
+            }
         }
     }
 }
