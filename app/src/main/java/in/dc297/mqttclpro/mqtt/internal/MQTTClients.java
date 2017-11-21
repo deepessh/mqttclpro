@@ -18,7 +18,6 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.w3c.dom.Text;
 
 import java.sql.Timestamp;
 
@@ -34,9 +33,12 @@ import in.dc297.mqttclpro.entity.TopicEntity;
 import in.dc297.mqttclpro.tasker.PluginBundleManager;
 import in.dc297.mqttclpro.tasker.activity.ConfigureTaskerEventActivity;
 import in.dc297.mqttclpro.tasker.activity.ConnectionLostConfigActivity;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
 import io.requery.query.Result;
-import io.requery.sql.EntityDataStore;
+import io.requery.reactivex.ReactiveEntityStore;
 import io.requery.sql.RowCountException;
 import tasker.TaskerPlugin;
 
@@ -65,7 +67,7 @@ public class MQTTClients {
     private HashMap<Long, MqttAndroidClient> clients = null;
 
     /**Requery datastore object to save or delete or restore connections**/
-    private EntityDataStore<Persistable> data;
+    private ReactiveEntityStore<Persistable> data;
 
     private MQTTClientApplication application = null;
     /**
@@ -209,14 +211,18 @@ public class MQTTClients {
                             TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY);
                             int taskerMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY, publishedBundle);
                             messageEntity.setTaskerId(taskerMessageId);
-                            data.insert(messageEntity);
-                            //tasker stuff starts
-                            Intent broadcastIntent = new Intent();
-                            broadcastIntent.setAction(in.dc297.mqttclpro.mqtt.Constants.INTENT_FILTER_SUBSCRIBE+brokerEntity.getId());
-                            application.sendBroadcast(broadcastIntent);
-                            application.sendBroadcast(INTENT_REQUEST_REQUERY);
-                            //tasker stuff ends
-
+                            data.insert(messageEntity).subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread()).subscribe(
+                                    new Consumer<MessageEntity>() {
+                                        @Override
+                                        public void accept(MessageEntity messageEntity) throws Exception {
+                                            Intent broadcastIntent = new Intent();
+                                            broadcastIntent.setAction(in.dc297.mqttclpro.mqtt.Constants.INTENT_FILTER_SUBSCRIBE+brokerEntity.getId());
+                                            application.sendBroadcast(broadcastIntent);
+                                            application.sendBroadcast(INTENT_REQUEST_REQUERY);
+                                            //tasker stuff starts
+                                        }
+                                    }
+                            );
                         }
                     }
                 });
@@ -231,7 +237,12 @@ public class MQTTClients {
                     if(messageId>0){
                         data.update(MessageEntity.class)
                             .set(MessageEntity.READ,1)
-                            .where(MessageEntity.ID.eq(messageId));
+                            .where(MessageEntity.ID.eq(messageId))
+                            .get()
+                            .single()
+                            .subscribeOn(Schedulers.single())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe();
                     }
 
                 } catch (MqttException e) {

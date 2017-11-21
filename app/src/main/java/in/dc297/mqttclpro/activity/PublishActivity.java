@@ -35,10 +35,15 @@ import in.dc297.mqttclpro.entity.Message;
 import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.entity.TopicEntity;
 import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
 import io.requery.android.QueryRecyclerAdapter;
 import io.requery.query.MutableResult;
 import io.requery.query.Result;
+import io.requery.reactivex.ReactiveEntityStore;
 import io.requery.sql.EntityDataStore;
 import io.requery.sql.RowCountException;
 import io.requery.util.CloseableIterator;
@@ -47,7 +52,7 @@ public class PublishActivity extends AppCompatActivity {
 
     public static final String EXTRA_BROKER_ID = "EXTRA_BROKER_ID";
 
-    private EntityDataStore<Persistable> data;
+    private ReactiveEntityStore<Persistable> data;
     private BrokerEntity broker;
     private ExecutorService executor;
     private TopicsListAdapter adapter;
@@ -65,9 +70,16 @@ public class PublishActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(),"Unknown Error!",Toast.LENGTH_SHORT).show();
             finish();
         }
-        BrokerEntity brokerEntity = data.findByKey(BrokerEntity.class,brokerId);
-        broker = brokerEntity;
-        setTitle(broker.getNickName() + " - published topics");
+        data.findByKey(BrokerEntity.class,brokerId)
+                .subscribeOn(Schedulers.single())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BrokerEntity>() {
+                    @Override
+                    public void accept(BrokerEntity brokerEntity) throws Exception {
+                        broker = brokerEntity;
+                        setTitle(broker.getNickName() + " - published topics");
+                    }
+                });
         mqttClients = MQTTClients.getInstance((MQTTClientApplication)getApplication());
         final Spinner qosSpinner = (Spinner) findViewById(R.id.qos_spinner);
 
@@ -82,10 +94,15 @@ public class PublishActivity extends AppCompatActivity {
         adapter.setExecutor(executor);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        Integer integer = data.count(TopicEntity.class).where(TopicEntity.BROKER_ID.eq(brokerId).and(TopicEntity.TYPE.eq(1))).get().value();
-        if (integer == 0) {
-            Toast.makeText(getApplicationContext(), "No message published on this broker yet!",Toast.LENGTH_SHORT).show();
-        }
+        data.count(TopicEntity.class).where(TopicEntity.BROKER_ID.eq(brokerId).and(TopicEntity.TYPE.eq(1))).get().single()
+                .subscribe(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) {
+                        if (integer == 0) {
+                            Toast.makeText(getApplicationContext(), "No message published on this broker yet!",Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
         final EditText topicEditText = (EditText) findViewById(R.id.topic_edittext);
         final EditText messageEditText = (EditText) findViewById(R.id.message_edittext);
         final Switch retainedSwitch = (Switch) findViewById(R.id.message_retained);
@@ -150,14 +167,23 @@ public class PublishActivity extends AppCompatActivity {
                         topicEntity.setName(topic);
                         messageEntity.setTopic(topicEntity);
                     }
-                    messageEntity = data.insert(messageEntity);
-                    if(messageEntity.getId()<=0){
-                        Toast.makeText(getApplicationContext(), "Unknown error occurred!", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    adapter.queryAsync();
-                    mqttClients.publishMessage(broker,topic,message,Integer.parseInt(qos),retained, messageEntity.getId());
-                    Log.i(PublishActivity.class.getName(),"Sending "+messageEntity.getId());
+                    data.insert(messageEntity)
+                            .subscribeOn(Schedulers.single())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Consumer<MessageEntity>() {
+                                @Override
+                                public void accept(MessageEntity messageEntity) throws Exception {
+                                    adapter.queryAsync();
+                                    Log.i(PublishActivity.class.getName(),"Sending "+messageEntity.getId());
+                                    mqttClients.publishMessage(broker,topic,message,Integer.parseInt(qos),retained, messageEntity.getId());
+                                }
+                            }, new Consumer<Throwable>() {
+                                @Override
+                                public void accept(Throwable throwable) throws Exception {
+                                    Toast.makeText(getApplicationContext(), "Unknown error occurred!", Toast.LENGTH_SHORT).show();
+                                    throwable.printStackTrace();
+                                }
+                            });
                 }
             });
         }
@@ -169,7 +195,21 @@ public class PublishActivity extends AppCompatActivity {
             case R.id.delete:
                 if(adapter.toDelete!=null) {
                     try {
-                        data.delete(adapter.toDelete);
+                        data.delete(adapter.toDelete)
+                                .subscribeOn(Schedulers.single())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Action() {
+                                    @Override
+                                    public void run() throws Exception {
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                adapter.queryAsync();
+                                                mqttClients.unSubscribe(broker,adapter.toDelete.getName());
+                                            }
+                                        });
+                                    }
+                                });;
                     }
                     catch(RowCountException rce){
                         rce.printStackTrace();

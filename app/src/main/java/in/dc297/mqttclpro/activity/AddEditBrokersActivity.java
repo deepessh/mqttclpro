@@ -27,13 +27,20 @@ import android.widget.Toast;
 
 import com.github.angads25.filepicker.view.FilePickerPreference;
 
+import java.util.function.Consumer;
+
 import in.dc297.mqttclpro.R;
 import in.dc297.mqttclpro.entity.BrokerEntity;
 import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
 import in.dc297.mqttclpro.mqtt.internal.Util;
 import in.dc297.mqttclpro.preferences.MyBrokerPreferences;
+import io.reactivex.Completable;
+import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Action;
+import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
-import io.requery.sql.EntityDataStore;
+import io.requery.reactivex.ReactiveEntityStore;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -58,7 +65,7 @@ public class AddEditBrokersActivity extends AppCompatPreferenceActivity {
 
     private BrokerEntity broker;
 
-    private EntityDataStore<Persistable> data;
+    private ReactiveEntityStore<Persistable> data;
 
     private MQTTClients mqttClients = null;
 
@@ -170,11 +177,23 @@ public class AddEditBrokersActivity extends AppCompatPreferenceActivity {
 
         if(brokerId!=-1) {
             Log.i(AddEditBrokersActivity.class.getName(),"Right about now");
-            BrokerEntity brokerEntity = data.findByKey(BrokerEntity.class,brokerId);
-            broker = brokerEntity;
-            mBindablepreferences = new MyBrokerPreferences(broker);
-            getFragmentManager().beginTransaction().add(android.R.id.content,new GeneralPreferenceFragment()).commit();
-            setTitle(broker.getNickName() + " - Edit");
+            data.findByKey(BrokerEntity.class,brokerId)
+                    .subscribeOn(Schedulers.single())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new io.reactivex.functions.Consumer<BrokerEntity>() {
+                        @Override
+                        public void accept(BrokerEntity brokerEntity) throws Exception {
+                            broker = brokerEntity;
+                            mBindablepreferences = new MyBrokerPreferences(broker);
+                            getFragmentManager().beginTransaction().add(android.R.id.content, new GeneralPreferenceFragment()).commit();
+                            setTitle(broker.getNickName() + " - Edit");
+                        }
+                    }, new io.reactivex.functions.Consumer<Throwable>() {
+                        @Override
+                        public void accept(Throwable throwable) throws Exception {
+                            if(throwable!=null) throwable.printStackTrace();
+                        }
+                    });
         }
         else{
             broker = new BrokerEntity();
@@ -258,10 +277,22 @@ public class AddEditBrokersActivity extends AppCompatPreferenceActivity {
                     Toast.makeText(getApplicationContext(), "Invalid host or port or nickname or client ID.", Toast.LENGTH_SHORT).show();
                     return false;
                 }
-
-                BrokerEntity brokerEntity = broker.getId() == 0 ? data.insert(broker) : data.update(broker);
-                mqttClients.addBroker(brokerEntity);
-                finish();
+                Single<BrokerEntity> single = broker.getId() == 0 ? data.insert(broker) : data.update(broker);
+                single.subscribeOn(Schedulers.single())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new io.reactivex.functions.Consumer<BrokerEntity>() {
+                                       @Override
+                                       public void accept(BrokerEntity brokerEntity) throws Exception {
+                                           if(brokerEntity!=null) mqttClients.addBroker(brokerEntity);
+                                           finish();
+                                       }
+                                   },
+                                new io.reactivex.functions.Consumer<Throwable>() {
+                                    @Override
+                                    public void accept(Throwable throwable) throws Exception {
+                                        if(throwable!=null)throwable.printStackTrace();
+                                    }
+                                });
                 break;
             case R.id.cancel:
                 finish();
@@ -270,10 +301,27 @@ public class AddEditBrokersActivity extends AppCompatPreferenceActivity {
                 if(broker.getId() != 0){
                     data.delete(broker);
                     mqttClients.removeBroker(broker);
-                    BrokerEntity brokerEntity1 = data.findByKey(BrokerEntity.class,broker.getId());
-                    if(brokerEntity1!=null) Toast.makeText(getApplicationContext(),"Some error occurred while trying to delete broker.",Toast.LENGTH_SHORT).show();
+                    Completable cDelete = broker.getId() == 0 ? null : data.delete(broker);
+                    if(cDelete!=null) {
+                        cDelete.subscribeOn(Schedulers.single())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Action() {
+                                    @Override
+                                    public void run() throws Exception {
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                mqttClients.removeBroker(broker);
+                                                finish();
+                                            }
+                                        });
+                                    }
+                                });
+                    }
+                    else {
+                        finish();
+                    }
                 }
-                finish();
 
         }
         return true;

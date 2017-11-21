@@ -23,7 +23,7 @@ import static in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BUNDLE;
 
 public class ConnectTaskerActivity extends AbstractPluginActivity {
 
-    private EntityDataStore<Persistable> data = null;
+    private ReactiveEntityStore<Persistable> data = null;
     private List<BrokerEntity> brokerEntityList = null;
 
     @Override

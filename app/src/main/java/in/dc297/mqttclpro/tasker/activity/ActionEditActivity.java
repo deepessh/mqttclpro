@@ -1,7 +1,6 @@
 package in.dc297.mqttclpro.tasker.activity;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.widget.ArrayAdapter;
@@ -19,14 +18,14 @@ import in.dc297.mqttclpro.R;
 import in.dc297.mqttclpro.activity.MQTTClientApplication;
 import in.dc297.mqttclpro.entity.BrokerEntity;
 import io.requery.Persistable;
-import io.requery.sql.EntityDataStore;
+import io.requery.reactivex.ReactiveEntityStore;
 import tasker.TaskerPlugin;
 
 import static in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BUNDLE;
 
 public class ActionEditActivity extends AbstractPluginActivity {
 
-    private EntityDataStore<Persistable> data = null;
+    private ReactiveEntityStore<Persistable> data = null;
     private List<BrokerEntity> brokerEntityList = null;
 
     @Override

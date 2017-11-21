@@ -40,10 +40,15 @@ import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.entity.TopicEntity;
 import in.dc297.mqttclpro.mqtt.Constants;
 import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
 import io.requery.android.QueryRecyclerAdapter;
 import io.requery.query.MutableResult;
 import io.requery.query.Result;
+import io.requery.reactivex.ReactiveEntityStore;
 import io.requery.sql.EntityDataStore;
 import io.requery.sql.StatementExecutionException;
 
@@ -52,7 +57,7 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
 
     public static final String EXTRA_BROKER_ID = "EXTRA_BROKER_ID";
 
-    private EntityDataStore<Persistable> data;
+    private ReactiveEntityStore<Persistable> data;
     private BrokerEntity broker;
     private ExecutorService executor;
     private TopicsListAdapter adapter;
@@ -121,17 +126,27 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
                     topicEntity.setName(topic);
                     topicEntity.setQOS(Integer.parseInt(qos));
                     topicEntity.setBroker(broker);
-                    try {
-                        TopicEntity insertedTopicEntity = data.insert(topicEntity);
-                        if (insertedTopicEntity.getId() > 0) {
-                            adapter.queryAsync();
-                            mqttClients.subscribeToTopic(broker, topic, Integer.parseInt(qos));
-                            return true;
-                        }
-                    }
-                    catch(StatementExecutionException see) {
-                        Toast.makeText(getApplicationContext(), "Topic already Exists or some error occured!", Toast.LENGTH_SHORT).show();
-                    }
+                    data.insert(topicEntity)
+                            .subscribeOn(Schedulers.single())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Consumer<TopicEntity>() {
+                                @Override
+                                public void accept(TopicEntity topicEntity) throws Exception {
+                                    adapter.queryAsync();
+                                    mqttClients.subscribeToTopic(broker, topic, Integer.parseInt(qos));
+                                }
+                            }, new Consumer<Throwable>() {
+                                @Override
+                                public void accept(Throwable throwable) throws Exception {
+                                    if(throwable instanceof StatementExecutionException) {
+                                        Toast.makeText(getApplicationContext(), "Topic already Exists!", Toast.LENGTH_SHORT).show();
+                                    }
+                                    else{
+                                        Toast.makeText(getApplicationContext(), "Unknown error occurred!", Toast.LENGTH_SHORT).show();
+                                    }
+                                    throwable.printStackTrace();
+                                }
+                            });
                     return true;
                 }
             });
@@ -142,19 +157,32 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
         adapter.setExecutor(executor);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        Integer integer = data.count(TopicEntity.class).where(TopicEntity.BROKER_ID.eq(brokerId).and(TopicEntity.TYPE.eq(0))).get().value();
-        if (integer == 0) {
-            Toast.makeText(getApplicationContext(), "Please add a topic!",Toast.LENGTH_SHORT).show();
-        }
+        data.count(TopicEntity.class).where(TopicEntity.BROKER_ID.eq(brokerId).and(TopicEntity.TYPE.eq(0))).get().single()
+                .subscribe(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) {
+                        if (integer == 0) {
+                            Toast.makeText(getApplicationContext(), "Please add a topic!",Toast.LENGTH_SHORT).show();
+                        }
+                        Log.i(SubscribedTopicsActivity.class.getName(),integer.toString());
+                    }
+                });
     }
     @Override
     protected void onResume() {
         super.onResume();
 
-        BrokerEntity brokerEntity = data.findByKey(BrokerEntity.class, brokerId);
-        broker = brokerEntity;
-        setTitle(broker.getNickName() + " - subscribed topics");
-        statusTV.setText(broker.getStatus());
+        data.findByKey(BrokerEntity.class, brokerId)
+                .subscribeOn(Schedulers.single())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<BrokerEntity>() {
+                    @Override
+                    public void accept(BrokerEntity brokerEntity) throws Exception {
+                        broker = brokerEntity;
+                        setTitle(broker.getNickName() + " - subscribed topics");
+                        statusTV.setText(broker.getStatus());
+                    }
+                });
 
         adapter.queryAsync();
         mqttBroadcastReceiver = new MqttBroadcastReceiver();
@@ -188,7 +216,21 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
         switch(menu.getItemId()){
             case R.id.delete:
                 if(adapter.toDelete!=null) {
-                    data.delete(adapter.toDelete);
+                    data.delete(adapter.toDelete)
+                            .subscribeOn(Schedulers.single())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Action() {
+                                @Override
+                                public void run() throws Exception {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            adapter.queryAsync();
+                                            mqttClients.unSubscribe(broker,adapter.toDelete.getName());
+                                        }
+                                    });
+                                }
+                            });;
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -202,9 +244,17 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
                 if(adapter.toDelete!=null){
                     data.delete(MessageEntity.class)
                             .where(MessageEntity.TOPIC
-                                    .eq(adapter.toDelete))
-                            .get().value();
-                    adapter.queryAsync();
+                            .eq(adapter.toDelete))
+                            .get()
+                            .single()
+                            .subscribeOn(Schedulers.single())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Consumer<Integer>() {
+                                @Override
+                                public void accept(Integer integer) throws Exception {
+                                    adapter.queryAsync();
+                                }
+                            });;
                 }
                 break;
             default:
@@ -291,10 +341,17 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            BrokerEntity brokerEntity = data.findByKey(BrokerEntity.class, brokerId);
-            broker = brokerEntity;
-            setTitle(broker.getNickName() + " - subscribed topics");
-            statusTV.setText(broker.getStatus());
+            data.findByKey(BrokerEntity.class, brokerId)
+                    .subscribeOn(Schedulers.single())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Consumer<BrokerEntity>() {
+                        @Override
+                        public void accept(BrokerEntity brokerEntity) throws Exception {
+                            broker = brokerEntity;
+                            setTitle(broker.getNickName() + " - subscribed topics");
+                            statusTV.setText(broker.getStatus());
+                        }
+                    });
         }
     }
 }

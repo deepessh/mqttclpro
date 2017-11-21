@@ -1,6 +1,5 @@
 package in.dc297.mqttclpro.tasker.receivers;
 
-import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -17,14 +16,13 @@ import in.dc297.mqttclpro.R;
 import in.dc297.mqttclpro.activity.MQTTClientApplication;
 import in.dc297.mqttclpro.entity.BrokerEntity;
 import in.dc297.mqttclpro.entity.MessageEntity;
-import in.dc297.mqttclpro.entity.Topic;
 import in.dc297.mqttclpro.helpers.ComparatorHelper;
-import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
 import in.dc297.mqttclpro.mqtt.internal.Util;
 import in.dc297.mqttclpro.tasker.Constants;
-import in.dc297.mqttclpro.tasker.PluginBundleManager;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
-import io.requery.sql.EntityDataStore;
+import io.requery.reactivex.ReactiveEntityStore;
 import tasker.TaskerPlugin;
 
 import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
@@ -38,7 +36,7 @@ import static in.dc297.mqttclpro.tasker.activity.Intent.MESSAGE_ARRIVED;
 
 public class QueryReceiver extends BroadcastReceiver {
 
-    EntityDataStore<Persistable> data = null;
+    ReactiveEntityStore<Persistable> data = null;
     @Override
     public void onReceive(Context context, Intent intent) {
 
@@ -109,7 +107,11 @@ public class QueryReceiver extends BroadcastReceiver {
                 data.update(BrokerEntity.class)
                         .set(BrokerEntity.TASKER_PASS_THROUGH_ID,0)
                         .where(BrokerEntity.TASKER_PASS_THROUGH_ID.eq(taskerPassThroughId))
-                        .get();
+                        .get()
+                        .single()
+                        .subscribeOn(Schedulers.single())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe();;
                 setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_SATISFIED);
             }
         }
