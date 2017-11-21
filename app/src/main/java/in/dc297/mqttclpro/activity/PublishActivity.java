@@ -25,6 +25,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -271,19 +272,9 @@ public class PublishActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(final TopicEntity topic, BindingHolder<TopicListItemBinding> topicListItemBindingBindingHolder, int i) {
-            MutableResult<Message> messages = topic.getMessages();
+            List<MessageEntity> messageEntityList = data.select(MessageEntity.class).where(MessageEntity.TOPIC_ID.eq(topic.getId())).orderBy(MessageEntity.TIME_STAMP.desc()).limit(1).get().toList();
             topic.setUnreadCount(0);
-            topic.setLatestMessage(new MessageEntity());
-            messages.each(new io.requery.util.function.Consumer<Message>() {
-                @Override
-                public void accept(Message message) {
-                    if(topic.getLatestMessage()!=null
-                            && topic.getLatestMessage().getTimeStamp()!=null
-                            && topic.getLatestMessage().getTimeStamp().before(message.getTimeStamp()))
-                        topic.setLatestMessage(message);
-                    else if (topic.getLatestMessage()!=null && topic.getLatestMessage().getTimeStamp()==null) topic.setLatestMessage(message);
-                }
-            });
+            topic.setLatestMessage(messageEntityList.size()>0?messageEntityList.get(0):new MessageEntity());
             topic.setCountVisibility(topic.getUnreadCount() == 0 ? View.INVISIBLE : View.VISIBLE);
             topicListItemBindingBindingHolder.binding.setTopic(topic);
         }
