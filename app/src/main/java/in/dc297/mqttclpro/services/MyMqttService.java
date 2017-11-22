@@ -11,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
+import in.dc297.mqttclpro.BuildConfig;
 import in.dc297.mqttclpro.R;
 import in.dc297.mqttclpro.activity.BrokersListActivity;
 import in.dc297.mqttclpro.activity.MQTTClientApplication;
@@ -38,7 +39,11 @@ public class MyMqttService extends Service implements SharedPreferences.OnShared
 
     private void showNotification() {
         Notification.Builder builder = new Notification.Builder(getApplicationContext());
-        builder.setSmallIcon(R.drawable.ic_notifications_black_24dp)
+        int resourceId = R.drawable.ic_notifications_black_24dp;
+
+        if(android.os.Build.VERSION.SDK_INT<=19) resourceId = R.mipmap.ic_launcher;//fix for kitkat
+
+        builder.setSmallIcon(resourceId)
                 .setContentTitle(getResources().getString(R.string.app_name))
                 .setContentText("Running in background")
                 .setAutoCancel(false);

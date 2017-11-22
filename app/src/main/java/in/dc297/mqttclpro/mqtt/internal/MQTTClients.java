@@ -329,7 +329,7 @@ public class MQTTClients {
                             return;
                         }
                         else{
-                            TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
+                            /*TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
                             int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST, PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
                             brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
                             try{
@@ -337,12 +337,12 @@ public class MQTTClients {
                             }
                             catch(Exception e){
                                 e.printStackTrace();
-                            }
+                            }*/
                             Calendar wakeUpTime = Calendar.getInstance();
                             wakeUpTime.add(Calendar.MILLISECOND, mqttAndroidClient.getReconnectDelay());
                             setBrokerStatus(brokerEntity, "Failed to connect to " + uri + ". Next Connect scheduled at " + wakeUpTime.getTime());
                             application.sendBroadcast(INTENT_REQUEST_REQUERY_CONN_LOST);
-                            Log.i(MQTTClients.class.getName(), "broadcasting connection lost with tasker id: " + taskerPassthroughMessageId);
+                            //Log.i(MQTTClients.class.getName(), "broadcasting connection lost with tasker id: " + taskerPassthroughMessageId);
                         }
                     }
 
