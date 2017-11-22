@@ -43,39 +43,39 @@ SSL Support - https://gist.github.com/sharonbn/4104301
 
 You may use the below code in your app to send actions to the app.
 
-#Connecting to a broker
+**Connecting to a broker**
 
-String innerAction = "in.dc297.mqttclpro.tasker.activity.Intent.MQTT_CONNECT_ACTION";
-//the following numeric value can be read in the interface of the app next to
-//the broker nickname and host name
-long brokerId = 1;
-Bundle b = new Bundle();
-b.putLong("in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BROKER_ID",brokerId);
-b.putString("in.dc297.mqttclpro.tasker.activity.intent.ACTION_OPERATION",innerAction);
-Intent intent = new Intent("com.twofortyfouram.locale.intent.action.FIRE_SETTING");
-intent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE",b);
-intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-context.sendBroadcast(intent);
+`String innerAction = "in.dc297.mqttclpro.tasker.activity.Intent.MQTT_CONNECT_ACTION";`
+`//the following numeric value can be read in the interface of the app next to`
+`//the broker nickname and host name`
+`long brokerId = 1;`
+`Bundle b = new Bundle();`
+`b.putLong("in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BROKER_ID",brokerId);`
+`b.putString("in.dc297.mqttclpro.tasker.activity.intent.ACTION_OPERATION",innerAction);`
+`Intent intent = new Intent("com.twofortyfouram.locale.intent.action.FIRE_SETTING");`
+`intent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE",b);`
+`intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);`
+`context.sendBroadcast(intent);`
 
-#Publishing a message
+**Publishing a message**
 
-String innerAction = "in.dc297.mqttclpro.tasker.activity.Intent.MQTT_PUBLISH_ACTION";
-//the following numeric value can be read in the interface of the app next to
-//the broker nickname and host name
-long brokerId = 1;
-String topic = "sample/topic";
-String message = "this is a message";
-boolean retained = false;
-//quos as String
-String qos = "0";
-Bundle b = new Bundle();
-b.putLong("in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BROKER_ID",brokerId);
-b.putString("in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_TOPIC",topic);
-b.putString("in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_MESSAGE",message);
-b.putString("in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_QOS",qos);
-b.putBoolean("in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_RETAINED",retained);
-b.putString("in.dc297.mqttclpro.tasker.activity.intent.ACTION_OPERATION",innerAction);
-Intent intent = new Intent("com.twofortyfouram.locale.intent.action.FIRE_SETTING");
-intent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE",b);
-intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-context.sendBroadcast(intent);
+`String innerAction = "in.dc297.mqttclpro.tasker.activity.Intent.MQTT_PUBLISH_ACTION";`
+`//the following numeric value can be read in the interface of the app next to`
+`//the broker nickname and host name`
+`long brokerId = 1;`
+`String topic = "sample/topic";`
+`String message = "this is a message";`
+`boolean retained = false;`
+`//quos as String`
+`String qos = "0";`
+`Bundle b = new Bundle();`
+`b.putLong("in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BROKER_ID",brokerId);`
+`b.putString("in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_TOPIC",topic);`
+`b.putString("in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_MESSAGE",message);`
+`b.putString("in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_QOS",qos);`
+`b.putBoolean("in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_RETAINED",retained);`
+`b.putString("in.dc297.mqttclpro.tasker.activity.intent.ACTION_OPERATION",innerAction);`
+`Intent intent = new Intent("com.twofortyfouram.locale.intent.action.FIRE_SETTING");`
+`intent.putExtra("com.twofortyfouram.locale.intent.extra.BUNDLE",b);`
+`intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);`
+`context.sendBroadcast(intent);`
