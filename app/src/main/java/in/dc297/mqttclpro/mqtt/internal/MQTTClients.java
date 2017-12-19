@@ -27,6 +27,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.net.SocketFactory;
+
 import in.dc297.mqttclpro.SSL.SSLUtil;
 import in.dc297.mqttclpro.activity.MQTTClientApplication;
 import in.dc297.mqttclpro.entity.BrokerEntity;
@@ -290,7 +292,8 @@ public class MQTTClients {
         catch(Exception e){}
 
         if(ssl){
-            connectOptions.setSocketFactory(SSLUtil.getSocketFactory(caCrt,clientCrt,clientKey,clientKeyPassword,clientP12));
+            SocketFactory mSocketFactory = SSLUtil.getSocketFactory(caCrt,clientCrt,clientKey,clientKeyPassword,clientP12);
+            if(mSocketFactory!=null)connectOptions.setSocketFactory(mSocketFactory);
         }
         boolean v31 = brokerEntity.getv31();
         if(!v31){
@@ -356,7 +359,6 @@ public class MQTTClients {
         } catch (MqttException e) {
             e.printStackTrace();
         }
-
         return mqttAndroidClient;
     }
 
