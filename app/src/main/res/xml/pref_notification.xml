@@ -23,5 +23,12 @@
         android:dependency="notifications_new_message"
         android:key="notifications_new_message_vibrate"
         android:title="@string/pref_title_vibrate" /-->
-
+    <ListPreference
+        android:defaultValue="0"
+        android:entries="@array/pref_notification_priority_list_titles"
+        android:entryValues="@array/pref_notification_priority_list_values"
+        android:key="notification_priority"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/pref_notification_priority_title" />
 </PreferenceScreen>

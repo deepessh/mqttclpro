@@ -20,6 +20,8 @@ import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
 public class MyMqttService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String MY_NOTIFICATION_KEY = "notifications_new_message";
+
+    private static final String MY_NOTIFICATION_PRIORITY_KEY = "notification_priority";
     public MyMqttService() {
     }
 
@@ -62,6 +64,7 @@ public class MyMqttService extends Service implements SharedPreferences.OnShared
                 stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
         notification.contentIntent = resultPendingIntent;
+        notification.priority = getNotificationPriority();
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         Log.i(MyMqttService.class.getName(),"Adding notification");
         notificationManager.notify(1, notification);
@@ -73,6 +76,11 @@ public class MyMqttService extends Service implements SharedPreferences.OnShared
             return true;
         }
         return false;
+    }
+
+    private int getNotificationPriority(){
+        SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        return Integer.parseInt(mSharedPreferences.getString(MY_NOTIFICATION_PRIORITY_KEY,"0"));
     }
 
     private void removeNotification(){
@@ -113,6 +121,10 @@ public class MyMqttService extends Service implements SharedPreferences.OnShared
             else{
                 removeNotification();
             }
+        }
+        else if(key.equals(MY_NOTIFICATION_PRIORITY_KEY)){
+            removeNotification();
+            showNotification();
         }
     }
 }

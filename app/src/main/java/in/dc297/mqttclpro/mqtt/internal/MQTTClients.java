@@ -194,8 +194,8 @@ public class MQTTClients {
             @Override
             public void connectionLost(Throwable cause) {
                 if(cause!=null) cause.printStackTrace();
-                TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
-                int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST,PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
+                int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_CONN_LOST);
+                TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_CONN_LOST,PluginBundleManager.generateBundle(application.getApplicationContext(), "", "",taskerPassthroughMessageId));
 
                 if(!brokerEntity.getEnabled()){
                     setBrokerStatus(brokerEntity, "Disabled");
@@ -236,19 +236,19 @@ public class MQTTClients {
                                         messageEntity.setDisplayTopic(receivedTopic);
                                         messageEntity.setRetained(receivedMessage.isRetained());
 
-                                        Bundle publishedBundle = PluginBundleManager.generateBundle(application.getApplicationContext(), messageEntity.getPayload(), messageEntity.getDisplayTopic());
-
-                                        TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY);
-
-                                        int taskerMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY, publishedBundle);
+                                        final int taskerMessageId = TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY);
                                         messageEntity.setTaskerId(taskerMessageId);
-
-                                        Log.i(MQTTClients.class.getName(),"broadcasting message arrived with tasker id " + taskerMessageId);
 
                                         data.insert(messageEntity).subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread()).subscribe(
                                                 new Consumer<MessageEntity>() {
                                                     @Override
                                                     public void accept(MessageEntity messageEntity) throws Exception {
+
+                                                        Bundle publishedBundle = PluginBundleManager.generateBundle(application.getApplicationContext(), messageEntity.getPayload(), messageEntity.getDisplayTopic(),messageEntity.getId());
+
+                                                        TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY, publishedBundle);
+                                                        Log.i(MQTTClients.class.getName(),"broadcasting message arrived with tasker id " + taskerMessageId);
+
                                                         Intent broadcastIntent = new Intent();
                                                         broadcastIntent.setAction(in.dc297.mqttclpro.mqtt.Constants.INTENT_FILTER_SUBSCRIBE + brokerEntity.getId());
                                                         application.sendBroadcast(broadcastIntent);
