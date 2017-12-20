@@ -2,9 +2,11 @@ package in.dc297.mqttclpro.mqtt.internal;
 
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -32,12 +34,14 @@ import javax.net.SocketFactory;
 import in.dc297.mqttclpro.SSL.SSLUtil;
 import in.dc297.mqttclpro.activity.MQTTClientApplication;
 import in.dc297.mqttclpro.entity.BrokerEntity;
+import in.dc297.mqttclpro.entity.Message;
 import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.entity.TopicEntity;
 import in.dc297.mqttclpro.tasker.PluginBundleManager;
 import in.dc297.mqttclpro.tasker.activity.ConfigureTaskerEventActivity;
 import in.dc297.mqttclpro.tasker.activity.ConnectionLostConfigActivity;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
@@ -77,6 +81,13 @@ public class MQTTClients {
     private ReactiveEntityStore<Persistable> data;
 
     private MQTTClientApplication application = null;
+
+
+    private int maxMessages = 0;
+
+    private static final String MAX_MESSAGES_KEY = "max_messages";
+
+
     /**
      * Create a clients object
      */
@@ -91,6 +102,9 @@ public class MQTTClients {
         handlerThread = new HandlerThread("messagearrived");
         handlerThread.start();
         handler = new Handler(handlerThread.getLooper());
+        SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(application.getApplicationContext());
+        maxMessages = Integer.parseInt(mSharedPreferences.getString(MAX_MESSAGES_KEY,"0"));
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(mSharedPreferenceChangeListener);
     }
 
     public synchronized static MQTTClients getInstance(MQTTClientApplication mqttClientApplication){
@@ -243,6 +257,25 @@ public class MQTTClients {
                                                     }
                                                 }
                                         );
+
+                                        if(maxMessages>0){
+                                            data.count(MessageEntity.class).get().single()
+                                                    .subscribe(new Consumer<Integer>() {
+                                                        @Override
+                                                        public void accept(final Integer integer) {
+                                                            if (integer > maxMessages) {
+                                                                data.select(MessageEntity.class).orderBy(MessageEntity.TIME_STAMP.desc()).limit(1).offset(maxMessages).get().observable()
+                                                                        .subscribe(new Consumer<MessageEntity>() {
+                                                                            @Override
+                                                                            public void accept(MessageEntity messageEntity) throws Exception {
+                                                                                Log.i(MQTTClients.class.getName(),"Deleting messages before " + messageEntity.getTimeStamp().toString());
+                                                                                data.delete(MessageEntity.class).where(MessageEntity.TIME_STAMP.lessThan(messageEntity.getTimeStamp())).get().single().blockingGet();
+                                                                            }
+                                                                        });
+                                                            }
+                                                        }
+                                                    });
+                                        }
                                     }
                                 }
                             });
@@ -543,4 +576,13 @@ public class MQTTClients {
         clients.put(brokerEntity.getId(),fromEntity(brokerEntity));
 
     }
+
+    private SharedPreferences.OnSharedPreferenceChangeListener mSharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            if(key.equals(MAX_MESSAGES_KEY)){
+                maxMessages = Integer.parseInt(sharedPreferences.getString(key,"0"));
+            }
+        }
+    };
 }

@@ -219,5 +219,8 @@
     <string name="v31_switch_desc">Enable/Disable this option if you are facing frequent reconnects</string>
     <string name="pref_title_v31">Use MQTT v3.1</string>
     <string name="title_activity_settings">Settings</string>
+    <string name="pref_default_max_messages">0</string>
+    <string name="pref_description_max_messages">Maximum number of messages to store</string>
+    <string name="pref_title_max_messages">Max Messages</string>
 
 </resources>
