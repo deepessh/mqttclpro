@@ -132,6 +132,21 @@
         <item>-1</item>
     </string-array>
 
+    <string-array name="pref_notification_priority_list_titles">
+        <item>Max</item>
+        <item>High</item>
+        <item>Default</item>
+        <item>Low</item>
+        <item>Min</item>
+    </string-array>
+    <string-array name="pref_notification_priority_list_values">
+        <item>2</item>
+        <item>1</item>
+        <item>0</item>
+        <item>-1</item>
+        <item>-2</item>
+    </string-array>
+
     <!-- Example settings for Data & Sync -->
     <string name="pref_header_data_sync">Data &amp; sync</string>
 
@@ -219,6 +234,10 @@
     <string name="v31_switch_desc">Enable/Disable this option if you are facing frequent reconnects</string>
     <string name="pref_title_v31">Use MQTT v3.1</string>
     <string name="title_activity_settings">Settings</string>
+    <string name="pref_default_max_messages">0</string>
+    <string name="pref_description_max_messages">Maximum number of messages to store</string>
+    <string name="pref_title_max_messages">Max Messages</string>
+    <string name="pref_notification_priority_title">Notification Priority</string>
     <string name="reconnect_title">Connection Re-established</string>
 
 </resources>

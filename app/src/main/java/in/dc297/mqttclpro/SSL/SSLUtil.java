@@ -70,6 +70,8 @@ public class SSLUtil {
             else{//load default android cakeystore
                 KeyStore caKeyStore = KeyStore.getInstance("AndroidCAStore");
                 caKeyStore.load(null);
+                trustManagerFactory = TrustManagerFactory.getInstance(
+                        TrustManagerFactory.getDefaultAlgorithm());
                 trustManagerFactory.init(caKeyStore);
             }
             KeyManagerFactory keyManagerFactory = null;
@@ -83,7 +85,7 @@ public class SSLUtil {
                 keyManagerFactory = KeyManagerFactory.getInstance("X509");
                 keyManagerFactory.init(clientKeyStore,(password!=null && password.length()>0)?password.toCharArray(): new char[0]);
             }
-            else if(crtFile!=null && crtFile!="") {
+            else if(!TextUtils.isEmpty(crtFile)) {
                 reader = new PEMParser(new FileReader(crtFile));
                 X509CertificateHolder certHolder = (X509CertificateHolder) reader.readObject();
                 reader.close();

@@ -51,6 +51,10 @@ public final class PluginBundleManager
     public static final String BUNDLE_EXTRA_STRING_TOPIC =
             "in.dc297.mqttclpro.extra.STRING_TOPIC";
 
+    public static final String BUNDLE_EXTRA_INT_TASKER_ID =
+            "in.dc297.mqttclpro.extra.INT_TASKER_ID"
+            ;
+
     /**
      * Method to verify the content of the bundle are correct.
      * <p>
@@ -141,12 +145,13 @@ public final class PluginBundleManager
      * @param message The toast message to be displayed by the plug-in. Cannot be null.
      * @return A plug-in bundle.
      */
-    public static Bundle generateBundle(final Context context, final String message, final String topic)
+    public static Bundle generateBundle(final Context context, final String message, final String topic, final int taskerId)
     {
         final Bundle result = new Bundle();
         result.putInt(BUNDLE_EXTRA_INT_VERSION_CODE, Constants.getVersionCode(context));
         result.putString(BUNDLE_EXTRA_STRING_MESSAGE, message);
         result.putString(BUNDLE_EXTRA_STRING_TOPIC, topic);
+        result.putInt(BUNDLE_EXTRA_INT_TASKER_ID,taskerId);
 
         return result;
     }

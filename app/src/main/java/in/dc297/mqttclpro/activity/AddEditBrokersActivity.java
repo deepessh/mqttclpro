@@ -291,6 +291,7 @@ public class AddEditBrokersActivity extends AppCompatPreferenceActivity {
                                     @Override
                                     public void accept(Throwable throwable) throws Exception {
                                         if(throwable!=null)throwable.printStackTrace();
+                                        Toast.makeText(getApplicationContext(),"Unknown error occurred!",Toast.LENGTH_SHORT).show();
                                     }
                                 });
                 break;

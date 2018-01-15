@@ -19,6 +19,7 @@ import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.helpers.ComparatorHelper;
 import in.dc297.mqttclpro.mqtt.internal.Util;
 import in.dc297.mqttclpro.tasker.Constants;
+import in.dc297.mqttclpro.tasker.PluginBundleManager;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import io.requery.Persistable;
@@ -167,6 +168,7 @@ public class QueryReceiver extends BroadcastReceiver {
         String topicVar = "";
         long brokerId = 0;
         int taskerMessageId = 0;
+        int taskerBundleMessageId = 0;
         int topicComparator = 0;
         int messageComparator = 0;
         String topicToCompare = "";
@@ -185,28 +187,40 @@ public class QueryReceiver extends BroadcastReceiver {
         }
 
         if(TextUtils.isEmpty(topic) || TextUtils.isEmpty(message) || TextUtils.isEmpty(topicVar) || brokerId==0) {//if any of them is still null, we return failure
+            Log.i(QueryReceiver.class.getName(),"Invalid topic/message/topicvar");
             setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNKNOWN);
             return;
         }
 
         taskerMessageId = TaskerPlugin.Event.retrievePassThroughMessageID(intent);
 
+        Bundle publishedBundle = TaskerPlugin.Event.retrievePassThroughData(intent);
+
+        if(publishedBundle!=null) taskerBundleMessageId = publishedBundle.getInt(PluginBundleManager.BUNDLE_EXTRA_INT_TASKER_ID);
+
         if(taskerMessageId<=0){
+            Log.i(QueryReceiver.class.getName(),"Invalid message id("+taskerBundleMessageId+") or tasker id("+taskerMessageId+")");
             setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNKNOWN);
             return;
         }
 
-        Log.i(QueryReceiver.class.getName(),"Received query with message ID" + taskerMessageId);
+        Log.i(QueryReceiver.class.getName(),"Received query with message ID" + taskerMessageId + " bundled message ID " + taskerBundleMessageId);
 
         try{
-            List<MessageEntity> messageEntityList =  data.select(MessageEntity.class).where(MessageEntity.TASKER_ID.eq(taskerMessageId)).get().toList();
+            List<MessageEntity> messageEntityList =  (taskerBundleMessageId>0)
+                    ?
+                    data.select(MessageEntity.class).where(MessageEntity.ID.eq(taskerBundleMessageId)).get().toList()
+                    :
+                    data.select(MessageEntity.class).where(MessageEntity.TASKER_ID.eq(taskerMessageId)).get().toList();
             if(messageEntityList ==null || messageEntityList.size()!=1){
+                Log.i(QueryReceiver.class.getName(),"No matching message found");
                 setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNKNOWN);
                 return;
             }
 
             MessageEntity messageEntity = messageEntityList.get(0);
             if(messageEntity==null){
+                Log.i(QueryReceiver.class.getName(),"No matching message found");
                 setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNKNOWN);
                 return;
             }
@@ -215,6 +229,7 @@ public class QueryReceiver extends BroadcastReceiver {
 
 
             if(!Util.mosquitto_topic_matches_sub(topic, publishedTopic)){
+                Log.i(QueryReceiver.class.getName(),"Topic mismatch");
                 setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNSATISFIED);
                 return;
             }
@@ -222,6 +237,7 @@ public class QueryReceiver extends BroadcastReceiver {
             long publishedBrokerId = messageEntity.getTopic().getBroker().getId();
 
             if(publishedBrokerId!=brokerId){
+                Log.i(QueryReceiver.class.getName(),"Broker mismatch");
                 setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNSATISFIED);
                 return;
             }
@@ -230,6 +246,7 @@ public class QueryReceiver extends BroadcastReceiver {
 
             if(!TextUtils.isEmpty(topicToCompare)){
                 if(!(Boolean)getCustomValue(comparators[topicComparator],publishedTopic,topicToCompare)){
+                    Log.i(QueryReceiver.class.getName(),"Topic Comparator mismatch");
                     setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNSATISFIED);
                     return;
                 }
@@ -237,6 +254,7 @@ public class QueryReceiver extends BroadcastReceiver {
 
             if(!TextUtils.isEmpty(messageToCompare)){
                 if(!(Boolean)getCustomValue(comparators[messageComparator],publishedMessage,messageToCompare)){
+                    Log.i(QueryReceiver.class.getName(),"Message Comparator mismatch");
                     setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNSATISFIED);
                     return;
                 }
@@ -252,9 +270,6 @@ public class QueryReceiver extends BroadcastReceiver {
             } else {
                 Log.i("Query success", "Seems like host doesnt support variable setting");
             }
-
-            setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_SATISFIED);
-
         }
         catch(Exception e){
             e.printStackTrace();
