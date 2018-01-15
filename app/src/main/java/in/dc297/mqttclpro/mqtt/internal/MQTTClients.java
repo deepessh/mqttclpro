@@ -35,6 +35,7 @@ import in.dc297.mqttclpro.entity.TopicEntity;
 import in.dc297.mqttclpro.tasker.PluginBundleManager;
 import in.dc297.mqttclpro.tasker.activity.ConfigureTaskerEventActivity;
 import in.dc297.mqttclpro.tasker.activity.ConnectionLostConfigActivity;
+import in.dc297.mqttclpro.tasker.activity.ReconnectConfigActivity;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -62,6 +63,10 @@ public class MQTTClients {
     protected static final Intent INTENT_REQUEST_REQUERY_CONN_LOST =
             new Intent(in.dc297.mqttclpro.tasker.activity.Intent.ACTION_REQUEST_QUERY).putExtra(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_ACTIVITY,
                     ConnectionLostConfigActivity.class.getName());
+
+    protected static final Intent INTENT_REQUEST_REQUERY_RECONNECTED =
+            new Intent(in.dc297.mqttclpro.tasker.activity.Intent.ACTION_REQUEST_QUERY).putExtra(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_ACTIVITY,
+                    ReconnectConfigActivity.class.getName());
 
     private Handler handler;
     private HandlerThread handlerThread;
@@ -166,6 +171,21 @@ public class MQTTClients {
             public void connectComplete(boolean reconnect, String serverURI) {
                 setBrokerStatus(brokerEntity,(reconnect?"Rec":"C")+"onnected to " + uri);
                 subscribeToTopics(brokerEntity,mqttAndroidClient);
+                if(reconnect) {
+                    TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_RECONNECTED);
+                    int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_RECONNECTED, PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
+
+
+                    brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
+                    try {
+                        data.update(brokerEntity).blockingGet();
+                        application.sendBroadcast(INTENT_REQUEST_REQUERY_RECONNECTED);
+                        Log.i(MQTTClients.class.getName(), "broadcasting reconnected with tasker id: " + taskerPassthroughMessageId);
+                    } catch (RowCountException e) {
+                        //seems like we have already deleted broker!
+                        e.printStackTrace();
+                    }
+                }
             }
 
             @Override

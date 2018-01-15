@@ -219,5 +219,6 @@
     <string name="v31_switch_desc">Enable/Disable this option if you are facing frequent reconnects</string>
     <string name="pref_title_v31">Use MQTT v3.1</string>
     <string name="title_activity_settings">Settings</string>
+    <string name="reconnect_title">Connection Re-established</string>
 
 </resources>

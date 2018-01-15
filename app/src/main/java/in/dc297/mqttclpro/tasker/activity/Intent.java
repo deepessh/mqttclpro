@@ -201,6 +201,7 @@ public final class Intent
     public static final String ACTION_OPERATION = "in.dc297.mqttclpro.tasker.activity.intent.ACTION_OPERATION";
     public static final String MESSAGE_ARRIVED = "in.dc297.mqttclpro.tasker.activity.intent.MESSAGE_ARRIVED";
     public static final String CONNECTION_LOST = "in.dc297.mqttclpro.tasker.activity.intent.CONNECTION_LOST";
+    public static final String RECONNECTED = "in.dc297.mqttclpro.tasker.activity.intent.RECONNECTED";
 
 
     /**

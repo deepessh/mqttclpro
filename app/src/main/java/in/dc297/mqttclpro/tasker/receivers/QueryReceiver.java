@@ -29,6 +29,7 @@ import static in.dc297.mqttclpro.tasker.Constants.LOG_TAG;
 import static in.dc297.mqttclpro.tasker.activity.Intent.CONNECTION_LOST;
 import static in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BUNDLE;
 import static in.dc297.mqttclpro.tasker.activity.Intent.MESSAGE_ARRIVED;
+import static in.dc297.mqttclpro.tasker.activity.Intent.RECONNECTED;
 
 /**
  * Created by Deepesh on 10/26/2017.
@@ -72,6 +73,9 @@ public class QueryReceiver extends BroadcastReceiver {
             case CONNECTION_LOST:
                 checkConnectionLost(intent, context);
                 break;
+            case RECONNECTED:
+                checkReconnected(intent, context);
+                break;
             default:
                 setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNKNOWN);
                 break;
@@ -79,6 +83,45 @@ public class QueryReceiver extends BroadcastReceiver {
     }
 
     private void checkConnectionLost(Intent intent, Context context){
+        Bundle taskerBundle = intent.getBundleExtra(EXTRA_BUNDLE);
+        if(taskerBundle!=null){
+            Long brokerId = taskerBundle.getLong(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BROKER_ID, 0);
+            int taskerPassThroughId = TaskerPlugin.Event.retrievePassThroughMessageID(intent);
+
+            Log.i(QueryReceiver.class.getName(),"Our broker id is " + brokerId + " and our tasker pass thru id is " + taskerPassThroughId);
+
+            if(taskerPassThroughId<=0){
+                setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNKNOWN);
+                return;
+            }
+            if(brokerId>0){
+                List<BrokerEntity> brokerEntityList = data.select(BrokerEntity.class).where(BrokerEntity.TASKER_PASS_THROUGH_ID.eq(taskerPassThroughId)).get().toList();
+                if(brokerEntityList.size()<=0){
+                    Log.i(QueryReceiver.class.getName(),"No such brokers found with matching tasker id");
+                    setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNKNOWN);
+                    return;
+                }
+
+                if(brokerEntityList.get(0).getId()!=brokerId){
+                    Log.i(QueryReceiver.class.getName(),"Broker ids dont match");
+                    setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_UNKNOWN);
+                    return;
+                }
+                Log.i(QueryReceiver.class.getName(),"Query success");
+                data.update(BrokerEntity.class)
+                        .set(BrokerEntity.TASKER_PASS_THROUGH_ID,0)
+                        .where(BrokerEntity.TASKER_PASS_THROUGH_ID.eq(taskerPassThroughId))
+                        .get()
+                        .single()
+                        .subscribeOn(Schedulers.single())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe();;
+                setResultCode(in.dc297.mqttclpro.tasker.activity.Intent.RESULT_CONDITION_SATISFIED);
+            }
+        }
+    }
+
+    private void checkReconnected(Intent intent, Context context){
         Bundle taskerBundle = intent.getBundleExtra(EXTRA_BUNDLE);
         if(taskerBundle!=null){
             Long brokerId = taskerBundle.getLong(in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BROKER_ID, 0);
