@@ -188,8 +188,8 @@ public class MQTTClients {
                 setBrokerStatus(brokerEntity,(reconnect?"Rec":"C")+"onnected to " + uri);
                 subscribeToTopics(brokerEntity,mqttAndroidClient);
                 if(reconnect) {
-                    TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_RECONNECTED);
-                    int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_RECONNECTED, PluginBundleManager.generateBundle(application.getApplicationContext(), "", ""));
+                    int taskerPassthroughMessageId = TaskerPlugin.Event.addPassThroughMessageID(INTENT_REQUEST_REQUERY_RECONNECTED);
+                    TaskerPlugin.Event.addPassThroughData(INTENT_REQUEST_REQUERY_RECONNECTED, PluginBundleManager.generateBundle(application.getApplicationContext(), "", "", taskerPassthroughMessageId));
 
 
                     brokerEntity.setTaskerPassThroughId(taskerPassthroughMessageId);
