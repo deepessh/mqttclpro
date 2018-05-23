@@ -96,7 +96,7 @@
     <string name="client_key_default" />
     <string name="client_key_pwd_default" />
     <string name="client_key_pwd">Client Key Password</string>
-    <string name="client_p12">Cliient .p12 file</string>
+    <string name="client_p12">Client .p12 file</string>
     <string name="client_p12_desc">Choose a client p12 file having client.crt and client.key. If this is chosen, the client key and client crt chosen above will be ignored.</string>
     <string name="client_p12_default" />
     <string name="keepalive_desc">Keep Alive Interval in seconds</string>
