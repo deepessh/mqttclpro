@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -105,53 +106,21 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
                 public boolean onEditorAction(final TextView v, int actionId, KeyEvent event) {
                     final String topic = topicEdit.getText().toString();
                     final String qos = qosSpinner.getSelectedItem().toString();
-                    try{
-                        MqttTopic.validate(topic,true);
-                    }
-                    catch(Exception e){
-                        Snackbar.make(v,"Invalid MQTT Topic",Snackbar.LENGTH_SHORT)
-                                .setAction("Error",null).show();
-                        return false;
-                    }
-
-                    try{
-                        MqttMessage.validateQos(Integer.parseInt(qos));
-                    }
-                    catch(Exception e){
-                        Snackbar.make(v,"Invalid QOS",Snackbar.LENGTH_SHORT)
-                                .setAction("Error",null).show();
-                        return false;
-                    }
-
-                    TopicEntity topicEntity = new TopicEntity();
-                    topicEntity.setName(topic);
-                    topicEntity.setQOS(Integer.parseInt(qos));
-                    topicEntity.setBroker(broker);
-                    data.insert(topicEntity)
-                            .subscribeOn(Schedulers.single())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Consumer<TopicEntity>() {
-                                @Override
-                                public void accept(TopicEntity topicEntity) throws Exception {
-                                    adapter.queryAsync();
-                                    mqttClients.subscribeToTopic(broker, topic, Integer.parseInt(qos));
-                                }
-                            }, new Consumer<Throwable>() {
-                                @Override
-                                public void accept(Throwable throwable) throws Exception {
-                                    if(throwable instanceof StatementExecutionException) {
-                                        Toast.makeText(getApplicationContext(), "Topic already Exists!", Toast.LENGTH_SHORT).show();
-                                    }
-                                    else{
-                                        Toast.makeText(getApplicationContext(), "Unknown error occurred!", Toast.LENGTH_SHORT).show();
-                                    }
-                                    throwable.printStackTrace();
-                                }
-                            });
-                    return true;
+                    return addTopic(v, qos,topic);
                 }
             });
         }
+
+        final Button subscribeButton = (Button) findViewById(R.id.subscribe_button);
+
+        subscribeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String topic = topicEdit.getText().toString();
+                final String qos = qosSpinner.getSelectedItem().toString();
+                addTopic(v, qos,topic);
+            }
+        });
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         executor = Executors.newSingleThreadExecutor();
         adapter = new TopicsListAdapter();
@@ -180,7 +149,7 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
                     @Override
                     public void accept(BrokerEntity brokerEntity) throws Exception {
                         broker = brokerEntity;
-                        setTitle(broker.getNickName() + " - subscribed topics");
+                        setTitle(broker.getNickName() + " - received messages");
                         statusTV.setText(broker.getStatus());
                     }
                 });
@@ -344,5 +313,52 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
                         }
                     });
         }
+    }
+
+    private boolean addTopic(View v, final String qos, final String topic){
+        try{
+            MqttTopic.validate(topic,true);
+        }
+        catch(Exception e){
+            Snackbar.make(v,"Invalid MQTT Topic",Snackbar.LENGTH_SHORT)
+                    .setAction("Error",null).show();
+            return false;
+        }
+
+        try{
+            MqttMessage.validateQos(Integer.parseInt(qos));
+        }
+        catch(Exception e){
+            Snackbar.make(v,"Invalid QOS",Snackbar.LENGTH_SHORT)
+                    .setAction("Error",null).show();
+            return false;
+        }
+
+        TopicEntity topicEntity = new TopicEntity();
+        topicEntity.setName(topic);
+        topicEntity.setQOS(Integer.parseInt(qos));
+        topicEntity.setBroker(broker);
+        data.insert(topicEntity)
+                .subscribeOn(Schedulers.single())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<TopicEntity>() {
+                    @Override
+                    public void accept(TopicEntity topicEntity) throws Exception {
+                        adapter.queryAsync();
+                        mqttClients.subscribeToTopic(broker, topic, Integer.parseInt(qos));
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        if(throwable instanceof StatementExecutionException) {
+                            Toast.makeText(getApplicationContext(), "Topic already Exists!", Toast.LENGTH_SHORT).show();
+                        }
+                        else{
+                            Toast.makeText(getApplicationContext(), "Unknown error occurred!", Toast.LENGTH_SHORT).show();
+                        }
+                        throwable.printStackTrace();
+                    }
+                });
+        return true;
     }
 }

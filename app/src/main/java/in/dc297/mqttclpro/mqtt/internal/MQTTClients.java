@@ -471,7 +471,7 @@ public class MQTTClients {
         if(message==null) message="";
 
         MqttAndroidClient mqttAndroidClient = clients.get(brokerEntity.getId());
-        if(mqttAndroidClient!=null && !TextUtils.isEmpty(mqttAndroidClient.getClientId())){
+        if(mqttAndroidClient!=null && !TextUtils.isEmpty(mqttAndroidClient.getClientId()) && mqttAndroidClient.isConnected()){
             MqttMessage mqttMessage = new MqttMessage();
             mqttMessage.setId(messageId);
             mqttMessage.setRetained(retained);

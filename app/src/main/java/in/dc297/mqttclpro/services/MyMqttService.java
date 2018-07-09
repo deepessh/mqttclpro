@@ -1,11 +1,13 @@
 package in.dc297.mqttclpro.services;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.TaskStackBuilder;
@@ -21,7 +23,9 @@ public class MyMqttService extends Service implements SharedPreferences.OnShared
 
     private static final String MY_NOTIFICATION_KEY = "notifications_new_message";
 
-    private static final String MY_NOTIFICATION_PRIORITY_KEY = "notification_priority";
+    public static final String MY_NOTIFICATION_PRIORITY_KEY = "notification_priority";
+
+    public static final String CHANNEL_ID = "my_channel_01";// The id of the channel.
     public MyMqttService() {
     }
 
@@ -40,10 +44,17 @@ public class MyMqttService extends Service implements SharedPreferences.OnShared
     }
 
     private void showNotification() {
-        Notification.Builder builder = new Notification.Builder(getApplicationContext());
+        Notification.Builder builder = null;
         int resourceId = R.drawable.ic_notifications_black_24dp;
 
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
         if(android.os.Build.VERSION.SDK_INT<=19) resourceId = R.mipmap.ic_launcher;//fix for kitkat
+
+        if(android.os.Build.VERSION.SDK_INT>= Build.VERSION_CODES.O){
+            builder = new Notification.Builder(getApplicationContext(),CHANNEL_ID);
+        }
+        else builder = new Notification.Builder(getApplicationContext());
 
         builder.setSmallIcon(resourceId)
                 .setContentTitle(getResources().getString(R.string.app_name))
@@ -65,17 +76,14 @@ public class MyMqttService extends Service implements SharedPreferences.OnShared
 
         notification.contentIntent = resultPendingIntent;
         notification.priority = getNotificationPriority();
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         Log.i(MyMqttService.class.getName(),"Adding notification");
+
         notificationManager.notify(1, notification);
     }
 
     private boolean shouldShowNotification(){
         SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        if(mSharedPreferences.getBoolean(MY_NOTIFICATION_KEY,true)){
-            return true;
-        }
-        return false;
+        return mSharedPreferences.getBoolean(MY_NOTIFICATION_KEY,true);
     }
 
     private int getNotificationPriority(){
@@ -123,8 +131,10 @@ public class MyMqttService extends Service implements SharedPreferences.OnShared
             }
         }
         else if(key.equals(MY_NOTIFICATION_PRIORITY_KEY)){
-            removeNotification();
-            showNotification();
+            if(sharedPreferences.getBoolean(MY_NOTIFICATION_KEY,true)) {
+                removeNotification();
+                showNotification();
+            }
         }
     }
 }

@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "in.dc297.mqttclpro"
         minSdkVersion 14
-        targetSdkVersion 25
-        versionCode 47
-        versionName "4.4.4"
+        targetSdkVersion 27
+        versionCode 48
+        versionName "4.4.5"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support:support-v4:25.4.0'
+    implementation 'com.android.support:support-v4:27.1.1'
     compile fileTree(dir: 'libs', include: ['*.jar', '*.properties'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
@@ -62,10 +62,10 @@ dependencies {
 
     compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.56'
 
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:appcompat-v7:27.1.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:25.3.1'
-    compile 'com.android.support:support-vector-drawable:25.3.1'
+    compile 'com.android.support:design:27.1.1'
+    compile 'com.android.support:support-vector-drawable:27.1.1'
     compile 'com.github.angads25:filepicker:1.1.1'
     compile 'org.sufficientlysecure:donations:2.5'
     testCompile 'junit:junit:4.12'

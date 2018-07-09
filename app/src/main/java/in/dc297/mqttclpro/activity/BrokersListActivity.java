@@ -1,8 +1,14 @@
 package in.dc297.mqttclpro.activity;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -70,6 +76,16 @@ public class BrokersListActivity extends AppCompatActivity {
                         }
                     }
                 });
+        if(android.os.Build.VERSION.SDK_INT>= Build.VERSION_CODES.O &&
+                ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).getNotificationChannel(MyMqttService.CHANNEL_ID)==null) {
+            int importance = getNotificationPriority() + 3;//NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel mChannel = new NotificationChannel(MyMqttService.CHANNEL_ID, "Persistent Notification", importance);
+            mChannel.setDescription("Always show notification in the status bar");
+            mChannel.enableVibration(false);
+            mChannel.enableLights(false);
+            mChannel.setSound(null,null);
+            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(mChannel);
+        }
     }
 
     @Override
@@ -159,6 +175,11 @@ public class BrokersListActivity extends AppCompatActivity {
             }
             return true;
         }
+    }
+
+    private int getNotificationPriority(){
+        SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        return Integer.parseInt(mSharedPreferences.getString(MyMqttService.MY_NOTIFICATION_PRIORITY_KEY,"0"));
     }
 
 

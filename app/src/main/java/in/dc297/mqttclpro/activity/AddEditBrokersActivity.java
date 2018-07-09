@@ -27,8 +27,6 @@ import android.widget.Toast;
 
 import com.github.angads25.filepicker.view.FilePickerPreference;
 
-import java.util.function.Consumer;
-
 import in.dc297.mqttclpro.R;
 import in.dc297.mqttclpro.entity.BrokerEntity;
 import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
@@ -273,8 +271,20 @@ public class AddEditBrokersActivity extends AppCompatPreferenceActivity {
         switch(item.getItemId()){
             case R.id.save:
                 broker = mBindablepreferences.getBroker();
-                if(TextUtils.isEmpty(broker.getPort()) || TextUtils.isEmpty(broker.getNickName()) || TextUtils.isEmpty(broker.getClientId()) || !Util.isHostValid(broker.getHost())){
-                    Toast.makeText(getApplicationContext(), "Invalid host or port or nickname or client ID.", Toast.LENGTH_SHORT).show();
+                if(TextUtils.isEmpty(broker.getNickName())){
+                    Toast.makeText(getApplicationContext(), "Invalid nickname.", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+                if(!Util.isHostValid(broker.getHost())){
+                    Toast.makeText(getApplicationContext(), "Invalid Host.", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+                if(TextUtils.isEmpty(broker.getPort())){
+                    Toast.makeText(getApplicationContext(), "Invalid port.", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+                if(TextUtils.isEmpty(broker.getClientId())){
+                    Toast.makeText(getApplicationContext(), "Invalid Client ID.", Toast.LENGTH_SHORT).show();
                     return false;
                 }
                 Single<BrokerEntity> single = broker.getId() == 0 ? data.insert(broker) : data.update(broker);
@@ -347,7 +357,7 @@ public class AddEditBrokersActivity extends AppCompatPreferenceActivity {
             bindPreferenceSummaryToValue(findPreference("Host"));
             bindPreferenceSummaryToValue(findPreference("Port"));
             bindPreferenceSummaryToValue(findPreference("Username"));
-            bindPreferenceSummaryToValue(findPreference("Password"));
+            bindPreferenceSummaryToValue(findPreference("ClientId"));
             bindPreferenceSummaryToValue(findPreference("CACrt"));
             bindPreferenceSummaryToValue(findPreference("ClientCrt"));
             bindPreferenceSummaryToValue(findPreference("ClientKey"));

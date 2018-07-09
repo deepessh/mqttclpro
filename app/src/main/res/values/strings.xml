@@ -239,5 +239,8 @@
     <string name="pref_title_max_messages">Max Messages</string>
     <string name="pref_notification_priority_title">Notification Priority</string>
     <string name="reconnect_title">Connection Re-established</string>
+    <string name="add_topic">Add Topic</string>
+    <string name="dialog_yes">Okay</string>
+    <string name="add_topic_desc">Please subscribe to at least one topic for this broker!</string>
 
 </resources>

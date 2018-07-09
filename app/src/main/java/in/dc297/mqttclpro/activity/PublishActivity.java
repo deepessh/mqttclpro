@@ -78,7 +78,7 @@ public class PublishActivity extends AppCompatActivity {
                     @Override
                     public void accept(BrokerEntity brokerEntity) throws Exception {
                         broker = brokerEntity;
-                        setTitle(broker.getNickName() + " - published topics");
+                        setTitle(broker.getNickName() + " - Publish Messages");
                     }
                 });
         mqttClients = MQTTClients.getInstance((MQTTClientApplication)getApplication());

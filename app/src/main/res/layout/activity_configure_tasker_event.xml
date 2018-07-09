@@ -68,7 +68,10 @@
             android:layout_below="@+id/LL2"
             android:layout_alignParentStart="true"
             android:hint="@string/message_tasker_var"
-            android:layout_alignParentLeft="true" />
+            android:layout_alignParentLeft="true"
+            android:maxEms="1"
+            android:singleLine="true"
+            android:digits="abcdefghijklmnopqrstuvwxyz123456789"/>
 
         <EditText
             android:layout_width="match_parent"
@@ -77,7 +80,10 @@
             android:layout_below="@+id/editText2"
             android:layout_alignParentStart="true"
             android:hint="@string/topic_tasker_var"
-            android:layout_alignParentLeft="true" />
+            android:layout_alignParentLeft="true"
+            android:maxEms="1"
+            android:singleLine="true"
+            android:digits="abcdefghijklmnopqrstuvwxyz1234567890"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -143,7 +149,9 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:hint="testtopic"
-                android:maxLines="1" />
+                android:maxLines="1"
+                android:maxEms="1"
+                android:singleLine="true"/>
         </LinearLayout>
 
         <LinearLayout
@@ -172,7 +180,9 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:hint="testmessage"
-                android:maxLines="1"/>
+                android:maxLines="1"
+                android:maxEms="1"
+                android:singleLine="true"/>
         </LinearLayout>
         <Spinner
             android:id="@+id/topicComparatorSpinner"

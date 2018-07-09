@@ -76,7 +76,8 @@
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
-        android:title="@string/pref_title_password" />
+        android:title="@string/pref_title_password"
+        android:password="true"/>
     <EditTextPreference
         android:capitalize="words"
         android:defaultValue="@string/pref_default_keepalive"
@@ -153,6 +154,7 @@
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
+        android:password="true"
         android:title="@string/client_key_pwd"
         android:summary="@string/client_key_pwd_desc"/>
 

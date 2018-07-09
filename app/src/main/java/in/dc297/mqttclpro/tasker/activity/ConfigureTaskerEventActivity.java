@@ -21,6 +21,7 @@ import java.util.List;
 
 import in.dc297.mqttclpro.R;
 import in.dc297.mqttclpro.activity.MQTTClientApplication;
+import in.dc297.mqttclpro.dialog.AddTopicDialogFragment;
 import in.dc297.mqttclpro.entity.BrokerEntity;
 import in.dc297.mqttclpro.entity.Topic;
 import in.dc297.mqttclpro.tasker.BreadCrumber;
@@ -181,7 +182,10 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
                     }
                 }
                 if(topicEntityList.size()==0){
-                    Toast.makeText(getApplicationContext(),"No Topics added for this broker",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),"Please subscribe to at least one topic for this broker to setup a tasker event.",Toast.LENGTH_LONG).show();
+                    AddTopicDialogFragment addTopicDialogFragment = new AddTopicDialogFragment();
+                    addTopicDialogFragment.setBrokerId(brokerEntityList.get(position).getId());
+                    addTopicDialogFragment.show(getFragmentManager(),"ADD_TOPIC_DIALOG");
                 }
                 String[] topics = new String[topicEntityList.size()];
                 int i_t=0;
@@ -259,7 +263,7 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
                 final String messageCompBlurb = TextUtils.isEmpty(topicToCompareTo)?"":"Message " + messageComparatorSpinner.getSelectedItem() + " " + messageToCompareTo;
 
                 if(TextUtils.isEmpty(topic)){
-                    Toast.makeText(getApplicationContext(), "Invalid topic", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Please subscribe to at least one topic for this broker to setup a tasker event!", Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -304,7 +308,7 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
             }
             else{
                 //broker can't be invalid
-                Toast.makeText(getApplicationContext(), "Invalid topic", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Please subscribe to at least one topic for this broker to setup a tasker event!", Toast.LENGTH_LONG).show();
                 return;
             }
         }
@@ -324,4 +328,5 @@ public class ConfigureTaskerEventActivity extends AbstractPluginActivity {
 
         return message;
     }
+
 }
