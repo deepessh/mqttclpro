@@ -15,7 +15,7 @@
         tools:context=".activity.BrokersListActivity"
         tools:layout_editor_absoluteY="0dp"
         tools:layout_editor_absoluteX="8dp"
-        android:layout_below="@+id/statusTV"
+        android:layout_below="@+id/adView"
         android:longClickable="true">
 
     </android.support.v7.widget.RecyclerView>
@@ -32,4 +32,13 @@
         tools:layout_editor_absoluteY="0dp"
         tools:layout_editor_absoluteX="8dp"
         android:layout_alignParentLeft="true" />
+
+    <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/adView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/statusTV"
+        android:layout_centerHorizontal="true"
+        ads:adSize="BANNER"
+        ads:adUnitId="@string/admob_brokerlistactivity_banner_id"></com.google.android.gms.ads.AdView>
 </RelativeLayout>

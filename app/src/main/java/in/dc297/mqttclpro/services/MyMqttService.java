@@ -1,7 +1,6 @@
 package in.dc297.mqttclpro.services;
 
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -51,9 +50,6 @@ public class MyMqttService extends Service implements SharedPreferences.OnShared
 
         if(android.os.Build.VERSION.SDK_INT<=19) resourceId = R.mipmap.ic_launcher;//fix for kitkat
 
-        if(android.os.Build.VERSION.SDK_INT>= Build.VERSION_CODES.O){
-            builder = new Notification.Builder(getApplicationContext(),CHANNEL_ID);
-        }
         else builder = new Notification.Builder(getApplicationContext());
 
         builder.setSmallIcon(resourceId)

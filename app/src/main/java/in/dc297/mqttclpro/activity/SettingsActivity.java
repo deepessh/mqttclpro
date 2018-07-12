@@ -209,13 +209,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     public static class NotificationPreferenceFragment extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState) {
-            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
-                Intent i = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
-                i.putExtra(Settings.EXTRA_APP_PACKAGE, getActivity().getPackageName());
-                i.putExtra(Settings.EXTRA_CHANNEL_ID, MyMqttService.CHANNEL_ID);
-                startActivity(i);
-                getActivity().finish();
-            }
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_notification);
             setHasOptionsMenu(true);

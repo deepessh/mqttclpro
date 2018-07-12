@@ -1,6 +1,5 @@
 package in.dc297.mqttclpro.activity;
 
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
@@ -24,9 +23,13 @@ import android.widget.Toast;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import in.dc297.mqttclpro.BuildConfig;
 import in.dc297.mqttclpro.R;
 import in.dc297.mqttclpro.databinding.BrokerListItemBinding;
+import in.dc297.mqttclpro.dialog.AddTopicDialogFragment;
+import in.dc297.mqttclpro.dialog.AdsEnabledDialogFragment;
 import in.dc297.mqttclpro.entity.BrokerEntity;
+import in.dc297.mqttclpro.helpers.AdsHelper;
 import in.dc297.mqttclpro.services.MyMqttService;
 import io.reactivex.functions.Consumer;
 import io.requery.Persistable;
@@ -34,11 +37,16 @@ import io.requery.android.QueryRecyclerAdapter;
 import io.requery.query.Result;
 import io.requery.reactivex.ReactiveEntityStore;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+
 public class BrokersListActivity extends AppCompatActivity {
 
     private ReactiveEntityStore<Persistable> data;
     private ExecutorService executor;
     private BrokersListAdapter adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,16 +84,8 @@ public class BrokersListActivity extends AppCompatActivity {
                         }
                     }
                 });
-        if(android.os.Build.VERSION.SDK_INT>= Build.VERSION_CODES.O &&
-                ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).getNotificationChannel(MyMqttService.CHANNEL_ID)==null) {
-            int importance = getNotificationPriority() + 3;//NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel mChannel = new NotificationChannel(MyMqttService.CHANNEL_ID, "Persistent Notification", importance);
-            mChannel.setDescription("Always show notification in the status bar");
-            mChannel.enableVibration(false);
-            mChannel.enableLights(false);
-            mChannel.setSound(null,null);
-            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(mChannel);
-        }
+        if(getAdsFirstTime()) new AdsEnabledDialogFragment().show(getFragmentManager(),"ADS_ENABLED_FRAGMENT");
+        AdsHelper.initializeAds((AdView)findViewById(R.id.adView),getApplicationContext());
     }
 
     @Override
@@ -177,10 +177,15 @@ public class BrokersListActivity extends AppCompatActivity {
         }
     }
 
-    private int getNotificationPriority(){
+    private boolean getAdsFirstTime(){
         SharedPreferences mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        return Integer.parseInt(mSharedPreferences.getString(MyMqttService.MY_NOTIFICATION_PRIORITY_KEY,"0"));
+        boolean flag = mSharedPreferences.getBoolean(getString(R.string.ads_first),true);
+        if(flag) {
+            SharedPreferences.Editor mSharedPrefsEditor = mSharedPreferences.edit();
+            mSharedPrefsEditor.putBoolean(getString(R.string.ads_first), false);
+            mSharedPrefsEditor.commit();
+        }
+        return flag;
     }
-
 
 }

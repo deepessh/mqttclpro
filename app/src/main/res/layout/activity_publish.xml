@@ -20,13 +20,20 @@
         tools:context="in.dc297.mqttclpro.PublishActivity"
         tools:showIn="@layout/activity_publish">
 
+        <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            ads:adSize="BANNER"
+            ads:adUnitId="@string/admob_publishactivity_banner_id"></com.google.android.gms.ads.AdView>
         <android.support.v7.widget.RecyclerView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/recyclerView"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentStart="true"
             android:layout_above="@+id/linearLayout"
+            android:layout_below="@id/adView"
             android:layout_alignParentLeft="true"
             />
 

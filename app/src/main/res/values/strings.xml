@@ -242,5 +242,13 @@
     <string name="add_topic">Add Topic</string>
     <string name="dialog_yes">Okay</string>
     <string name="add_topic_desc">Please subscribe to at least one topic for this broker!</string>
-
+    <string name="admob_id">ca-app-pub-8507646972615376~2037338733</string>
+    <string name="admob_debug_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="admob_brokerlistactivity_banner_id">ca-app-pub-8507646972615376/4056997412</string>
+    <string name="admob_subscribedtopicslistactivity_banner_id">ca-app-pub-8507646972615376/6269061936</string>
+    <string name="admob_messageactivity_banner_id">ca-app-pub-8507646972615376/4925449852</string>
+    <string name="admob_publishactivity_banner_id">ca-app-pub-8507646972615376/9814814451</string>
+    <string name="ads_enabled_message">Hi there, hope you are enjoying the app. Please note that the app is now ad-supported. Consider donating for an ad-free experience. Cheers!</string>
+    <string name="ads_enabled_title">Important Announcement</string>
+    <string name="ads_first">ads_first</string>
 </resources>

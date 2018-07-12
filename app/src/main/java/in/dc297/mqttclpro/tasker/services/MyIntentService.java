@@ -1,6 +1,7 @@
 package in.dc297.mqttclpro.tasker.services;
 
 import android.app.IntentService;
+import android.app.Notification;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -149,7 +150,11 @@ public class MyIntentService extends IntentService {
             }
         }
     }
-
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        startForeground(1,new Notification());
+    }
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {

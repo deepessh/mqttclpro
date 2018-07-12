@@ -15,11 +15,12 @@
  */
 package org.eclipse.paho.client.mqttv3.internal;
 
+import android.net.TrafficStats;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -43,6 +44,7 @@ public class TCPNetworkModule implements NetworkModule {
 	private String host;
 	private int port;
 	private int conTimeout;
+	private static final int THREAD_ID = 10000;
 
 	/**
 	 * Constructs a new TCPNetworkModule using the specified host and
@@ -58,6 +60,7 @@ public class TCPNetworkModule implements NetworkModule {
 		this.factory = factory;
 		this.host = host;
 		this.port = port;
+		TrafficStats.setThreadStatsTag(THREAD_ID);
 
 	}
 

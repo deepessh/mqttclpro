@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+//import org.sufficientlysecure.donations.DonationsFragment;
+
 import org.sufficientlysecure.donations.DonationsFragment;
 
 import in.dc297.mqttclpro.BuildConfig;
@@ -19,8 +21,8 @@ import in.dc297.mqttclpro.R;
 
 public class DonationActivity extends AppCompatActivity {
 
-    private static final String GOOGLE_PUBKEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApicSu8e8x5MitX+Nh8MJVyDpoAJE8fF5023KrYe7bubRclewZgAJnXR5dvif0ttTC2qKgxa0bih4Nxi22bOao8Pza8H9Obl2BMYWk/fKpBo8XumLX+s+U4cxU661hTHocQXcUZ27BOVHDMiN3jwxWzLBNiDHwF/yi2Qre5RdJ0wUhesGq1hCmGUJhe3pK8N1MYBAl14HOGuXkVj+qtdQUl4I6FgD2f6X3pgQwpLZkQ8wcEMu5egLgPbsWCuWMhDe6ine22OFnom/1/STXJPQPsjqXI1/euYs9F5EIoMfRnabDnmdFq7gfWli6b67LWoJDaI0HTcjy958yvQD8rBKtwIDAQAB";
-    private static final String[] GOOGLE_CATALOG = new String[]{"ntpsync.donation.1", "ntpsync.donation.3", "ntpsync.donation.5", "ntpsync.donation.13",
+    public static final String GOOGLE_PUBKEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApicSu8e8x5MitX+Nh8MJVyDpoAJE8fF5023KrYe7bubRclewZgAJnXR5dvif0ttTC2qKgxa0bih4Nxi22bOao8Pza8H9Obl2BMYWk/fKpBo8XumLX+s+U4cxU661hTHocQXcUZ27BOVHDMiN3jwxWzLBNiDHwF/yi2Qre5RdJ0wUhesGq1hCmGUJhe3pK8N1MYBAl14HOGuXkVj+qtdQUl4I6FgD2f6X3pgQwpLZkQ8wcEMu5egLgPbsWCuWMhDe6ine22OFnom/1/STXJPQPsjqXI1/euYs9F5EIoMfRnabDnmdFq7gfWli6b67LWoJDaI0HTcjy958yvQD8rBKtwIDAQAB";
+    public static final String[] GOOGLE_CATALOG = new String[]{"ntpsync.donation.1", "ntpsync.donation.3", "ntpsync.donation.5", "ntpsync.donation.13",
             "ntpsync.donation.20"};
 
 

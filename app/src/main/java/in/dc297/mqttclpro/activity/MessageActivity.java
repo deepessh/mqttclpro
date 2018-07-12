@@ -12,6 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdView;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,6 +21,7 @@ import in.dc297.mqttclpro.R;
 import in.dc297.mqttclpro.databinding.MessagesListItemBinding;
 import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.entity.TopicEntity;
+import in.dc297.mqttclpro.helpers.AdsHelper;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
@@ -89,7 +92,7 @@ public class MessageActivity extends AppCompatActivity {
                         }
                     }
                 });
-
+        AdsHelper.initializeAds((AdView)findViewById(R.id.adView),getApplicationContext());
     }
 
     @Override

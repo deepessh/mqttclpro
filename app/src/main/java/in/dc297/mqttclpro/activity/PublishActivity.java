@@ -21,6 +21,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdView;
+
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
@@ -35,6 +37,7 @@ import in.dc297.mqttclpro.entity.BrokerEntity;
 import in.dc297.mqttclpro.entity.Message;
 import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.entity.TopicEntity;
+import in.dc297.mqttclpro.helpers.AdsHelper;
 import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Action;
@@ -188,6 +191,8 @@ public class PublishActivity extends AppCompatActivity {
                 }
             });
         }
+
+        AdsHelper.initializeAds((AdView)findViewById(R.id.adView),getApplicationContext());
     }
 
     @Override

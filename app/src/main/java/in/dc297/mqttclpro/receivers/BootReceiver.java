@@ -3,6 +3,7 @@ package in.dc297.mqttclpro.receivers;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 import in.dc297.mqttclpro.activity.MQTTClientApplication;
@@ -23,5 +24,6 @@ public class BootReceiver extends BroadcastReceiver
         //start service
         Intent svc = new Intent(context, MyMqttService.class);
         context.startService(svc);
+
     }
 }

@@ -1,16 +1,17 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 25
     buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "in.dc297.mqttclpro"
         minSdkVersion 14
-        targetSdkVersion 27
-        versionCode 48
-        versionName "4.4.5"
+        targetSdkVersion 25
+        versionCode 49
+        versionName "4.4.6"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        multiDexEnabled true
     }
 
     compileOptions {
@@ -42,31 +43,46 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support:support-v4:27.1.1'
-    compile fileTree(dir: 'libs', include: ['*.jar', '*.properties'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation 'com.android.support:support-v4:25.3.1'
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.properties'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
 
-    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    compile 'io.reactivex.rxjava2:rxjava:2.1.5'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.5'
 
     annotationProcessor "io.requery:requery-processor:${rootProject.ext.requeryVersion}"
-    compile "io.requery:requery:${rootProject.ext.requeryVersion}"
-    compile "io.requery:requery-android:${rootProject.ext.requeryVersion}" // for android
+    implementation "io.requery:requery:${rootProject.ext.requeryVersion}"
+    implementation "io.requery:requery-android:${rootProject.ext.requeryVersion}" // for android
 
 
-    //compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:${rootProject.ext.clientVersion}"
-    //compile "org.eclipse.paho:org.eclipse.paho.android.service:${rootProject.ext.serviceVersion}"
+    //implementation "org.eclipse.paho:org.eclipse.paho.client.mqttv3:${rootProject.ext.clientVersion}"
+    //implementation "org.eclipse.paho:org.eclipse.paho.android.service:${rootProject.ext.serviceVersion}"
 
-    compile group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.56'
+    implementation group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.56'
 
-    compile 'com.android.support:appcompat-v7:27.1.1'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:27.1.1'
-    compile 'com.android.support:support-vector-drawable:27.1.1'
-    compile 'com.github.angads25:filepicker:1.1.1'
-    compile 'org.sufficientlysecure:donations:2.5'
-    testCompile 'junit:junit:4.12'
+    implementation 'com.android.support:appcompat-v7:25.3.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.android.support:design:25.3.1'
+    implementation 'com.android.support:support-vector-drawable:25.3.1'
+    implementation 'com.github.angads25:filepicker:1.1.1'
+    implementation 'org.sufficientlysecure:donations:2.5'
+    implementation 'com.google.android.gms:play-services-ads:15.0.1'
+
+    implementation 'com.android.support:multidex:1.0.3'
+
+    testImplementation 'junit:junit:4.12'
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == 'com.android.support') {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion '25.3.1'
+            }
+        }
+    }
 }
