@@ -7,8 +7,8 @@ android {
         applicationId "in.dc297.mqttclpro"
         minSdkVersion 14
         targetSdkVersion 25
-        versionCode 49
-        versionName "4.4.6"
+        versionCode 50
+        versionName "4.4.7"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
@@ -68,11 +68,11 @@ dependencies {
     implementation 'com.android.support:design:25.3.1'
     implementation 'com.android.support:support-vector-drawable:25.3.1'
     implementation 'com.github.angads25:filepicker:1.1.1'
-    implementation 'org.sufficientlysecure:donations:2.5'
+
     implementation 'com.google.android.gms:play-services-ads:15.0.1'
 
     implementation 'com.android.support:multidex:1.0.3'
-
+    api 'com.android.billingclient:billing:1.0'
     testImplementation 'junit:junit:4.12'
 }
 

@@ -2,6 +2,7 @@ package in.dc297.mqttclpro.activity;
 
 import android.app.Application;
 import android.os.StrictMode;
+import android.support.multidex.MultiDexApplication;
 
 import in.dc297.mqttclpro.BuildConfig;
 import in.dc297.mqttclpro.entity.Models;
@@ -19,7 +20,7 @@ import io.requery.sql.EntityDataStore;
  * Created by Deepesh on 10/16/2017.
  */
 
-public class MQTTClientApplication extends Application {
+public class MQTTClientApplication extends MultiDexApplication {
     private ReactiveEntityStore<Persistable> dataStore;
 
     @Override

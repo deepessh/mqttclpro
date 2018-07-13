@@ -50,7 +50,7 @@ public class MyMqttService extends Service implements SharedPreferences.OnShared
 
         if(android.os.Build.VERSION.SDK_INT<=19) resourceId = R.mipmap.ic_launcher;//fix for kitkat
 
-        else builder = new Notification.Builder(getApplicationContext());
+        builder = new Notification.Builder(getApplicationContext());
 
         builder.setSmallIcon(resourceId)
                 .setContentTitle(getResources().getString(R.string.app_name))

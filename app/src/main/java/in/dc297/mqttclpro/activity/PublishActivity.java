@@ -192,7 +192,7 @@ public class PublishActivity extends AppCompatActivity {
             });
         }
 
-        AdsHelper.initializeAds((AdView)findViewById(R.id.adView),getApplicationContext());
+        AdsHelper.initializeAds((AdView)findViewById(R.id.adView),this);
     }
 
     @Override

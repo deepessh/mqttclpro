@@ -85,7 +85,7 @@ public class BrokersListActivity extends AppCompatActivity {
                     }
                 });
         if(getAdsFirstTime()) new AdsEnabledDialogFragment().show(getFragmentManager(),"ADS_ENABLED_FRAGMENT");
-        AdsHelper.initializeAds((AdView)findViewById(R.id.adView),getApplicationContext());
+        AdsHelper.initializeAds((AdView)findViewById(R.id.adView),this);
     }
 
     @Override

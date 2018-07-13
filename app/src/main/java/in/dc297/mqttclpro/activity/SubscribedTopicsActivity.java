@@ -144,7 +144,7 @@ public class SubscribedTopicsActivity extends AppCompatActivity {
                 });
 
 
-        AdsHelper.initializeAds((AdView)findViewById(R.id.adView),getApplicationContext());
+        AdsHelper.initializeAds((AdView)findViewById(R.id.adView),this);
     }
     @Override
     protected void onResume() {

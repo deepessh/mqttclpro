@@ -5,13 +5,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-//import org.sufficientlysecure.donations.DonationsFragment;
 
 import org.sufficientlysecure.donations.DonationsFragment;
 
@@ -35,9 +33,8 @@ public class DonationActivity extends AppCompatActivity {
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         DonationsFragment donationsFragment;
-        donationsFragment = DonationsFragment.newInstance(BuildConfig.DEBUG, true, GOOGLE_PUBKEY, GOOGLE_CATALOG,
-                getResources().getStringArray(R.array.donation_google_catalog_values), false, null, null,
-                null, false, null, null, false, null);
+        donationsFragment = DonationsFragment.newInstance(BuildConfig.DEBUG, GOOGLE_PUBKEY, GOOGLE_CATALOG,
+                getResources().getStringArray(R.array.donation_google_catalog_values));
         ft.replace(R.id.donations_activity_container, donationsFragment, "donationsFragment");
         ft.commit();
         setTitle(getResources().getString(R.string.action_donate));
