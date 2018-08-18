@@ -2,8 +2,13 @@ package in.dc297.mqttclpro.tasker.services;
 
 import android.app.IntentService;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -13,12 +18,15 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 import java.sql.Timestamp;
 
+import in.dc297.mqttclpro.R;
+import in.dc297.mqttclpro.activity.BrokersListActivity;
 import in.dc297.mqttclpro.activity.MQTTClientApplication;
 import in.dc297.mqttclpro.activity.PublishActivity;
 import in.dc297.mqttclpro.entity.BrokerEntity;
 import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.entity.TopicEntity;
 import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
+import in.dc297.mqttclpro.services.MyMqttService;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -45,6 +53,8 @@ public class MyIntentService extends IntentService {
 
     private ReactiveEntityStore<Persistable> data = null;
     private MQTTClients mqttClients = null;
+
+    public static final String CHANNEL_ID = "tasker_channel";
     /**
      * Starts this service to perform action Baz with the given parameters. If
      * the service is already performing a task this action will be queued.
@@ -153,7 +163,7 @@ public class MyIntentService extends IntentService {
     @Override
     public void onCreate() {
         super.onCreate();
-        startForeground(1,new Notification());
+        startForeground(2000,showNotification());
     }
     @Override
     protected void onHandleIntent(Intent intent) {
@@ -165,6 +175,59 @@ public class MyIntentService extends IntentService {
             else if(MQTT_CONNECT_ACTION.equals(action)){
                 startConnectAction(intent);
             }
+        }
+    }
+
+    private Notification showNotification(){
+        createNotificationChannel();
+        Notification.Builder builder = null;
+        int resourceId = R.drawable.ic_notifications_black_24dp;
+
+        if(Build.VERSION.SDK_INT<=19) resourceId = R.mipmap.ic_launcher;//fix for kitkat
+
+        builder = new Notification.Builder(getApplicationContext());
+
+        builder.setSmallIcon(resourceId)
+                .setContentTitle(getResources().getString(R.string.app_name))
+                .setAutoCancel(false)
+                .setContentText("Handling tasker action");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder.setChannelId(CHANNEL_ID);
+        }
+        Notification notification = builder.getNotification();
+
+        notification.flags |= Notification.FLAG_NO_CLEAR
+                | Notification.FLAG_ONGOING_EVENT;
+        //notification.priority = getNotificationPriority();
+
+        return notification;
+
+    }
+
+    private void removeNotification(){
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.cancel(2000);
+    }
+
+    @Override
+    public void onDestroy(){
+        removeNotification();
+    }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name_mqtt_tasker);
+            String description = getString(R.string.channel_description_mqtt_tasker);
+            int importance = NotificationManager.IMPORTANCE_MIN;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 }

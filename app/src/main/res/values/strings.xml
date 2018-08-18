@@ -251,4 +251,8 @@
     <string name="ads_enabled_message">Hi there, hope you are enjoying the app. Please note that the app is now ad-supported. Consider donating for an ad-free experience. Cheers!</string>
     <string name="ads_enabled_title">Important Announcement</string>
     <string name="ads_first">ads_first</string>
+    <string name="channel_description_mqtt_service">Notification channel for MQTT Service running in background.</string>
+    <string name="channel_name_mqtt_service">Persistent Notification</string>
+    <string name="channel_name_mqtt_tasker">Tasker action</string>
+    <string name="channel_description_mqtt_tasker">Channel used to notify of tasker actions being performed</string>
 </resources>

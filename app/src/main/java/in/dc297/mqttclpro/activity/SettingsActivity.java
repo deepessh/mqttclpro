@@ -112,6 +112,19 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 //
 
     @Override
+    public void onHeaderClick(PreferenceActivity.Header header, int position){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent intent = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+            intent.putExtra(Settings.EXTRA_CHANNEL_ID, MyMqttService.CHANNEL_ID);
+            startActivity(intent);
+        }
+        else{
+            super.onHeaderClick(header, position);
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupActionBar();
@@ -212,7 +225,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_notification);
             setHasOptionsMenu(true);
-
             // Bind the summaries of EditText/List/Dialog/Ringtone preferences
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
