@@ -57,7 +57,12 @@ public final class FireReceiver extends BroadcastReceiver
             if (intentAction != null) {
                 Log.i(FireReceiver.class.getName(), "Received fire from tasker " + intentAction);
                 newIntent.setAction(intentAction);
-                context.startService(newIntent);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(newIntent);
+                }
+                else{
+                    context.startService(newIntent);
+                }
             }
         }
     }

@@ -23,7 +23,11 @@ public class BootReceiver extends BroadcastReceiver
         Log.i(BootReceiver.class.getName(),"Received start intent");
         //start service
         Intent svc = new Intent(context, MyMqttService.class);
-        context.startService(svc);
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(svc);
+        }
+        else{
+            context.startService(svc);
+        }
     }
 }

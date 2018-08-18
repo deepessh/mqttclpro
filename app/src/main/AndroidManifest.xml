@@ -100,7 +100,8 @@
         <!-- tasker initiate action helper service -->
         <service
             android:name=".tasker.services.MyIntentService"
-            android:exported="false" />
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
 
         <receiver android:name=".receivers.BootReceiver">
             <intent-filter>

@@ -4,11 +4,9 @@ import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.TaskStackBuilder;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -19,14 +17,12 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 import java.sql.Timestamp;
 
 import in.dc297.mqttclpro.R;
-import in.dc297.mqttclpro.activity.BrokersListActivity;
 import in.dc297.mqttclpro.activity.MQTTClientApplication;
 import in.dc297.mqttclpro.activity.PublishActivity;
 import in.dc297.mqttclpro.entity.BrokerEntity;
 import in.dc297.mqttclpro.entity.MessageEntity;
 import in.dc297.mqttclpro.entity.TopicEntity;
 import in.dc297.mqttclpro.mqtt.internal.MQTTClients;
-import in.dc297.mqttclpro.services.MyMqttService;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -34,6 +30,8 @@ import io.requery.Persistable;
 import io.requery.query.Result;
 import io.requery.reactivex.ReactiveEntityStore;
 import io.requery.util.CloseableIterator;
+
+//import android.support.v4.app.JobIntentService;
 
 import static in.dc297.mqttclpro.tasker.activity.Intent.EXTRA_BUNDLE;
 import static in.dc297.mqttclpro.tasker.activity.Intent.MQTT_CONNECT_ACTION;
@@ -206,8 +204,9 @@ public class MyIntentService extends IntentService {
     }
 
     private void removeNotification(){
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.cancel(2000);
+//        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+//        notificationManager.cancel(2000);
+        stopForeground(true);
     }
 
     @Override
