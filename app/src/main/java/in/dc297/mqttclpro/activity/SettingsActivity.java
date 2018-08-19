@@ -113,7 +113,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
     @Override
     public void onHeaderClick(PreferenceActivity.Header header, int position){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && header.fragment.equals(NotificationPreferenceFragment.class.getName())) {
             Intent intent = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
             intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
             intent.putExtra(Settings.EXTRA_CHANNEL_ID, MyMqttService.CHANNEL_ID);
