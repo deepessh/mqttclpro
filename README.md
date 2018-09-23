@@ -9,8 +9,6 @@ Tasker Integration works as follows:
 
 -To perform action whenever a message is received. Create a event in tasker from the plugin. Currently if any message is published on the topic configured, the event will be fired. need feedback on this as to how you guys want this to be implemented.
 
--No Ads!
-
 -Add/Remove topics easily!
 
 -Messages are automatically saved!
