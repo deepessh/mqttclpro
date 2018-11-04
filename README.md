@@ -37,7 +37,7 @@ FilePicker - https://github.com/Angads25/android-filepicker
 
 SSL Support - https://gist.github.com/sharonbn/4104301
 
-#Interfacing with other apps
+## Interfacing with other apps
 
 You may use the below code in your app to send actions to the app.
 
@@ -81,7 +81,7 @@ You may use the below code in your app to send actions to the app.
 
 `boolean retained = false;`
 
-`//quos as String`
+`//qos as String`
 
 `String qos = "0";`
 
