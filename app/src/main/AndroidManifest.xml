@@ -155,6 +155,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="in.dc297.mqttclpro.activity.AddEditBrokersActivity" />
         </activity>
+
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
+
     </application>
 
 </manifest>

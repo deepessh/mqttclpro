@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion '28.0.2'
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "in.dc297.mqttclpro"
         minSdkVersion 14
         targetSdkVersion 28
-        versionCode 53
-        versionName "4.5.0"
+        versionCode 54
+        versionName "4.5.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
