@@ -1,4 +1,7 @@
-# mqttclpro
+# mqttclpro 
+
+https://play.google.com/store/apps/details?id=in.dc297.mqttclpro
+
 MQTT Client for android with tasker integration
 
 Connect to any MQTT v3.1 broker and subscribe to topics. Perform Tasker actions on message publish or publish messages on tasker events. The app still might be rough around the edges.
